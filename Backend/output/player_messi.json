@@ -1,0 +1,13 @@
+{
+  "playerId": "wikidata_Q615",
+  "wikidataId": "Q615",
+  "apiFootballId": 154,
+  "name": "Lionel Messi",
+  "dateOfBirth": "1987-06-24",
+  "nationality": "Argentina",
+  "position": "Forward",
+  "sources": [
+    "Wikidata",
+    "API-Football"
+  ]
+}
