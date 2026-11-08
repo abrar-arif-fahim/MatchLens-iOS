@@ -26,7 +26,6 @@ def read_api_key():
             ):
                 return key
             break
-
     print("Error: Valid API_FOOTBALL_KEY not found in .env.")
     return None
 

@@ -1,0 +1,34 @@
+{
+  "teams": [
+    {
+      "expectedName": "FC Barcelona",
+      "expectedCountry": "Spain",
+      "shortName": "BAR",
+      "wikidataId": "Q7156"
+    },
+    {
+      "expectedName": "Real Madrid CF",
+      "expectedCountry": "Spain",
+      "shortName": "RMA",
+      "wikidataId": "Q8682"
+    },
+    {
+      "expectedName": "Manchester City FC",
+      "expectedCountry": "England",
+      "shortName": "MCI",
+      "wikidataId": "Q50602"
+    },
+    {
+      "expectedName": "Liverpool FC",
+      "expectedCountry": "England",
+      "shortName": "LIV",
+      "wikidataId": "Q1130849"
+    },
+    {
+      "expectedName": "FC Bayern Munich",
+      "expectedCountry": "Germany",
+      "shortName": "BAY",
+      "wikidataId": "Q15789"
+    }
+  ]
+}

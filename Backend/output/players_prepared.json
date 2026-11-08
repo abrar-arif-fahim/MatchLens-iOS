@@ -1,0 +1,49 @@
+{
+  "players": [
+    {
+      "documentId": "wikidata_Q615",
+      "wikidataId": "Q615",
+      "name": "Lionel Messi",
+      "dateOfBirth": "1987-06-24",
+      "nationality": "Argentina; Italy; Spain",
+      "position": "forward; midfielder",
+      "source": "Wikidata"
+    },
+    {
+      "documentId": "wikidata_Q11571",
+      "wikidataId": "Q11571",
+      "name": "Cristiano Ronaldo",
+      "dateOfBirth": "1985-02-05",
+      "nationality": "Portugal",
+      "position": "forward; wing half",
+      "source": "Wikidata"
+    },
+    {
+      "documentId": "wikidata_Q21621995",
+      "wikidataId": "Q21621995",
+      "name": "Kylian Mbappé",
+      "dateOfBirth": "1998-12-20",
+      "nationality": "France",
+      "position": "forward",
+      "source": "Wikidata"
+    },
+    {
+      "documentId": "wikidata_Q28967995",
+      "wikidataId": "Q28967995",
+      "name": "Erling Haaland",
+      "dateOfBirth": "2000-07-21",
+      "nationality": "Norway",
+      "position": "forward",
+      "source": "Wikidata"
+    },
+    {
+      "documentId": "wikidata_Q151269",
+      "wikidataId": "Q151269",
+      "name": "Robert Lewandowski",
+      "dateOfBirth": "1988-08-21",
+      "nationality": "Poland",
+      "position": "forward",
+      "source": "Wikidata"
+    }
+  ]
+}

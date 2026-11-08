@@ -1,0 +1,9 @@
+{
+  "players": [
+    {"wikidataId": "Q615", "expectedName": "Lionel Messi"},
+    {"wikidataId": "Q11571", "expectedName": "Cristiano Ronaldo"},
+    {"wikidataId": "Q21621995", "expectedName": "Kylian Mbappé"},
+    {"wikidataId": "Q28967995", "expectedName": "Erling Haaland"},
+    {"wikidataId": "Q151269", "expectedName": "Robert Lewandowski"}
+  ]
+}
