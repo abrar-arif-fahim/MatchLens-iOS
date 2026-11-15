@@ -7,9 +7,21 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var errorMessage: String? = nil
-    
+    @State private var showDemoAlert = false
 
     var body: some View {
+        // The sign-up link needs a navigation container to open RegisterView.
+        NavigationStack {
+            loginForm
+        }
+        .alert("Demo Sign In", isPresented: $showDemoAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your inputs are valid. Firebase sign-in is not connected yet, so you have not been signed in.")
+        }
+    }
+
+    private var loginForm: some View {
         ZStack {
 
             // MatchLens dark navy background
@@ -56,6 +68,7 @@ struct LoginView: View {
 
                         TextField("Enter your email address", text: $email)
                             .keyboardType(.emailAddress)
+                            .textContentType(.username)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .foregroundColor(.white)
@@ -83,6 +96,7 @@ struct LoginView: View {
                                     SecureField("Enter your password", text: $password)
                                 }
                             }
+                            .textContentType(.password)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .foregroundColor(.white)
@@ -104,6 +118,13 @@ struct LoginView: View {
                         .cornerRadius(12)
                     }
                     .padding(.top, 12)
+
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 14))
+                            .foregroundColor(.red)
+                            .accessibilityLabel("Sign-in error: \(errorMessage)")
+                    }
 
                     // Sign In button
                     Button {
@@ -129,20 +150,15 @@ struct LoginView: View {
                     HStack(spacing: 5) {
                         Text("Don't have an account?")
                             .foregroundColor(.gray)
-                    
-NavigationLink {
-    RegisterView()
-} label: {
-    Text("Sign up")
-        .fontWeight(.semibold)
-        .foregroundColor(
-            Color(red: 0.18, green: 0.48, blue: 1.0)
-        )
-}
-        
-
-                        
-                        
+                        NavigationLink {
+                            RegisterView()
+                        } label: {
+                            Text("Sign up")
+                                .fontWeight(.semibold)
+                                .foregroundColor(
+                                    Color(red: 0.18, green: 0.48, blue: 1.0)
+                                )
+                        }
                     }
                     .font(.system(size: 14))
                     .frame(maxWidth: .infinity)
@@ -153,6 +169,31 @@ NavigationLink {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    // Validate locally until Firebase Authentication is connected.
+    private func validateLogin() {
+        errorMessage = nil
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email address."
+            return
+        }
+
+        let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        guard trimmedEmail.range(of: emailPattern, options: .regularExpression) != nil else {
+            errorMessage = "Please enter a valid email address."
+            return
+        }
+
+        // Do not trim passwords or apply new-account rules to existing accounts.
+        guard !password.isEmpty else {
+            errorMessage = "Please enter your password."
+            return
+        }
+
+        showDemoAlert = true
     }
 }
 

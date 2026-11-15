@@ -46,6 +46,10 @@ struct RegisterView: View {
                             )
                             .clipShape(Circle())
 
+                        Text("MatchLens")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.white)
+
                         Text("Create Account")
                             .font(.system(size: 30, weight: .bold))
                             .foregroundColor(.white)
@@ -118,6 +122,7 @@ struct RegisterView: View {
                                     )
                                 }
                             }
+                            .textContentType(.newPassword)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .foregroundColor(.white)
@@ -169,6 +174,7 @@ struct RegisterView: View {
                                     )
                                 }
                             }
+                            .textContentType(.newPassword)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .foregroundColor(.white)
@@ -202,7 +208,7 @@ struct RegisterView: View {
                             .foregroundColor(.red)
                     }
 
-                    // MARK: - Create Account Button
+                    // MARK: - Sign Up Button (local validation only)
                     Button {
                         registerAccount()
                     } label: {
@@ -213,7 +219,7 @@ struct RegisterView: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Text("Create Account")
+                                Text("Sign Up")
                                     .font(
                                         .system(
                                             size: 16,
@@ -264,9 +270,25 @@ struct RegisterView: View {
                 .padding(.vertical, 24)
                 .frame(maxWidth: .infinity)
             }
+            .disabled(isLoading)
+        }
+        // SwiftUI cancels this demo task when the screen disappears.
+        .task(id: isLoading) {
+            guard isLoading else { return }
+
+            do {
+                try await Task.sleep(nanoseconds: 800_000_000)
+                try Task.checkCancellation()
+            } catch {
+                isLoading = false
+                return
+            }
+
+            isLoading = false
+            showSuccessAlert = true
         }
         .alert(
-            "Registration Successful",
+            "Demo Registration",
             isPresented: $showSuccessAlert
         ) {
             Button("Back to Sign In") {
@@ -274,13 +296,14 @@ struct RegisterView: View {
             }
         } message: {
             Text(
-                "Demo registration completed. Firebase account creation will be connected later."
+                "Your inputs are valid. Firebase account creation is not connected yet, so no account has been created."
             )
         }
     }
 
     // MARK: - Registration Validation
     private func registerAccount() {
+        guard !isLoading else { return }
 
         errorMessage = nil
 
@@ -360,13 +383,6 @@ struct RegisterView: View {
         // MARK: - Mock Registration
         // Firebase will replace this section later.
         isLoading = true
-
-        Task {
-            try? await Task.sleep(nanoseconds: 800_000_000)
-
-            isLoading = false
-            showSuccessAlert = true
-        }
     }
 }
 
