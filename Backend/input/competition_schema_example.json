@@ -1,0 +1,27 @@
+{
+  "competitions": [
+    {
+      "competitionId": "demo_competition_001",
+      "name": "MatchLens Demo Competition",
+      "competitionType": "domesticLeague",
+      "country": null,
+      "region": null,
+      "isDemo": true,
+      "source": "demo"
+    }
+  ],
+  "seasons": [
+    {
+      "seasonId": "demo_competition_001_season_001",
+      "competitionId": "demo_competition_001",
+      "label": "2030/31 (fictional)",
+      "startYear": 2030,
+      "endYear": 2031,
+      "startDate": null,
+      "endDate": null,
+      "isDemo": true,
+      "source": "demo"
+    }
+  ],
+  "providerMappings": []
+}

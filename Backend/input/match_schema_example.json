@@ -1,0 +1,23 @@
+{
+  "matchId": "demo_barcelona_madrid_001",
+  "homeTeamId": "wikidata_Q7156",
+  "awayTeamId": "wikidata_Q8682",
+  "competitionId": "demo_competition_001",
+  "sourceCompetitionId": null,
+  "competition": "MatchLens Demo Competition",
+  "season": "Demo season",
+  "kickoffUtc": "2030-01-01T18:00:00Z",
+  "status": "scheduled",
+  "finishType": null,
+  "homeScore": null,
+  "awayScore": null,
+  "regularTimeHomeScore": null,
+  "regularTimeAwayScore": null,
+  "extraTimeHomeScore": null,
+  "extraTimeAwayScore": null,
+  "penaltyHomeScore": null,
+  "penaltyAwayScore": null,
+  "isDemo": true,
+  "source": "demo",
+  "sourceMatchId": null
+}
