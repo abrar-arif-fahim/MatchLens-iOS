@@ -12,6 +12,7 @@ from firebase_admin import credentials, firestore
 from firebase_admin.exceptions import FirebaseError
 from google.api_core.exceptions import Aborted, GoogleAPICallError, PermissionDenied, Unauthenticated
 from google.auth.exceptions import GoogleAuthError
+from validate_match_schema import reject_duplicate_fields
 
 
 INPUT_FILE = Path(__file__).resolve().parent / "output" / "players_prepared.json"
@@ -43,7 +44,7 @@ def sensitive_text(value):
 def load_players():
     # Read and validate the ENTIRE file before initializing Firebase.
     with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-        data = json.load(input_file)
+        data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     records = data.get("players") if isinstance(data, dict) else None
     if not isinstance(records, list):
         raise PreviewError("The JSON must contain a players array.")
@@ -56,8 +57,8 @@ def load_players():
         if not isinstance(record, dict):
             raise PreviewError(f"Record {index} must be a JSON object.")
         wikidata_id = record.get("wikidataId")
-        if not isinstance(wikidata_id, str) or not re.fullmatch(r"Q[0-9]+", wikidata_id):
-            raise PreviewError(f"Record {index}: wikidataId must be Q followed by digits.")
+        if not isinstance(wikidata_id, str) or not re.fullmatch(r"Q[1-9][0-9]*", wikidata_id):
+            raise PreviewError(f"Record {index}: wikidataId must be a positive Q-number without leading zeros.")
         document_id = record.get("documentId")
         if document_id != f"wikidata_{wikidata_id}":
             raise PreviewError(f"Record {index}: documentId does not match wikidataId.")

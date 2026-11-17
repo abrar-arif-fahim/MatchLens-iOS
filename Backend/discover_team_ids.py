@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from validate_match_schema import reject_duplicate_fields
 
 # These existing modules use only the standard library and have main guards.
 # Reuse their label, alias and statement extraction without making import-time requests.
@@ -410,7 +411,7 @@ def verify_candidate(entity_id, team, client):
 
 def load_teams():
     with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-        data = json.load(input_file)
+        data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     teams = data.get("teams") if isinstance(data, dict) else None
     if not isinstance(teams, list) or not 1 <= len(teams) <= 5:
         raise ValidationError("Input must contain a teams array with one to five records.")

@@ -3,6 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
+from validate_match_schema import reject_duplicate_fields
 
 # These standard-library helpers use the same Request/urlopen pattern as
 # wikidata_test.py, with a descriptive User-Agent, timeout and entity cache.
@@ -27,11 +28,11 @@ BARCELONA_NAMES = {
 
 def load_schema():
     with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-        schema = json.load(input_file)
+        schema = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     if not isinstance(schema, dict):
         raise ValidationError("The team schema must contain one JSON object.")
     if not valid_id(schema.get("wikidataId")):
-        raise ValidationError("The schema needs a valid wikidataId such as Q5705.")
+        raise ValidationError("The schema needs a valid wikidataId such as Q7156.")
     expected_name = schema.get("name")
     if not isinstance(expected_name, str) or normalize_name(expected_name) not in BARCELONA_NAMES:
         raise ValidationError("This script expects the local name FC Barcelona.")

@@ -1,81 +1,52 @@
 
-import json
-from urllib.request import Request, urlopen
+"""Read Messi's Wikidata information when run directly, without import side effects."""
 
-# Lionel Messi's Wikidata ID
+from prepare_multiple_players import (
+    ValidationError, birth_date, claim_values, english_label, get_entity, readable_claims,
+)
+
+
 player_id = "Q615"
 
 
-# Function to download data from Wikidata
 def get_wikidata(entity_id):
-    url = f"https://www.wikidata.org/wiki/Special:EntityData/{entity_id}.json"
-
-    request = Request(
-        url,
-        headers={
-            "User-Agent": "MatchLensUniversityProject/1.0 (educational project)"
-        }
-    )
-
-    with urlopen(request, timeout=20) as response:
-        data = json.load(response)
-
-    return data["entities"][entity_id]
+    # The shared helper validates responses and uses a timeout and User-Agent.
+    return get_entity(entity_id, {})
 
 
-# Function to extract an entity ID from a property
 def get_property_id(player, property_id):
-    claims = player["claims"].get(property_id, [])
-
-    for claim in claims:
-        value = claim.get("mainsnak", {}).get("datavalue", {}).get("value", {})
-
-        if isinstance(value, dict) and "id" in value:
-            return value["id"]
-
-    return None
+    ids = {value.get("id") for value in claim_values(player, property_id)
+           if isinstance(value, dict) and isinstance(value.get("id"), str)}
+    # Never silently choose one of several values.
+    return next(iter(ids)) if len(ids) == 1 else None
 
 
-# Function to convert an entity ID to a readable name
 def get_entity_name(entity_id):
-    if entity_id is None:
-        return "Not available"
-
-    entity = get_wikidata(entity_id)
-
-    return entity.get("labels", {}).get("en", {}).get(
-        "value", entity_id
-    )
+    return english_label(get_wikidata(entity_id)) if entity_id else "Not available"
 
 
-# Retrieve player data
-player = get_wikidata(player_id)
+def main():
+    try:
+        cache = {}
+        player = get_entity(player_id, cache)
+        fields = (
+            ("Player ID", player_id),
+            ("Player Name", english_label(player)),
+            ("Date of Birth", birth_date(player)),
+            ("Nationality", readable_claims(player, "P27", cache)),
+            ("Playing Position", readable_claims(player, "P413", cache)),
+        )
+        print("\nMATCHLENS PLAYER DATA")
+        for label, value in fields:
+            print(f"{label}: {value}")
+        return 0
+    except ValidationError as error:
+        print(f"Wikidata validation failed: {error}")
+    except (ValueError, KeyError, TypeError, AttributeError, OSError):
+        print("Could not retrieve complete, valid Wikidata information.")
+    return 1
 
-# Player name
-name = player["labels"]["en"]["value"]
 
-# Date of birth
-birth_claims = player["claims"].get("P569", [])
-
-if birth_claims:
-    raw_date = birth_claims[0]["mainsnak"]["datavalue"]["value"]["time"]
-    date_of_birth = raw_date[1:11]
-else:
-    date_of_birth = "Not available"
-
-# Nationality / country of citizenship
-nationality_id = get_property_id(player, "P27")
-nationality = get_entity_name(nationality_id)
-
-# Playing position
-position_id = get_property_id(player, "P413")
-position = get_entity_name(position_id)
-
-# Display the extracted information
-print("\n MATCHLENS PLAYER DATA ")
-print("Player ID:", player_id)
-print("Player Name:", name)
-print("Date of Birth:", date_of_birth)
-print("Nationality:", nationality)
-print("Playing Position:", position)
+if __name__ == "__main__":
+    raise SystemExit(main())
 

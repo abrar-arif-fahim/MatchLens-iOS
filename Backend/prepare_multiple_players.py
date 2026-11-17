@@ -8,6 +8,7 @@ from http.client import HTTPException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from validate_match_schema import reject_duplicate_fields
 
 
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -44,8 +45,7 @@ def get_entity(entity_id, cache):
             raise cached
         return cached
 
-    # Reuse wikidata_test.py's Request + urlopen approach, without importing it:
-    # that existing script makes live requests as soon as it is imported.
+    # Use the established Request + urlopen approach with an explicit timeout.
     request = Request(
         f"https://www.wikidata.org/wiki/Special:EntityData/{entity_id}.json",
         headers={"User-Agent": USER_AGENT},
@@ -176,7 +176,7 @@ def prepare_player(reference, cache, seen_ids):
 def main():
     try:
         with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-            data = json.load(input_file)
+            data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     except FileNotFoundError:
         print("Input file not found: Backend/input/players_to_import.json.")
         return 1

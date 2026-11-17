@@ -1,62 +1,58 @@
 
+"""Test the API-Football connection only when this file is run directly."""
+
 import json
-from pathlib import Path
-from urllib.request import Request, urlopen
+from http.client import HTTPException
 from urllib.error import HTTPError, URLError
+from urllib.request import Request, build_opener
 
-# Find the .env file in the project root
-project_folder = Path(__file__).resolve().parent.parent
-env_file = project_folder / ".env"
+from api_football_players import NoRedirects, read_api_key
 
-# Read the API key
-api_key = None
 
-if env_file.exists():
-    for line in env_file.read_text(encoding="utf-8-sig").splitlines():
-        line = line.strip()
-
-        if line.startswith("API_FOOTBALL_KEY="):
-            api_key = line.split("=", 1)[1].strip().strip('"').strip("'")
-            break
-
-if not api_key or api_key in (
-    "PASTE_YOUR_API_KEY_HERE",
-    "PASTE_YOUR_ACTUAL_API_KEY_HERE",
-):
-    print("Error: Valid API key not found in .env")
-    raise SystemExit(1)
-
-# API-Football account status endpoint
-url = "https://v3.football.api-sports.io/status"
-
-# Send the key securely in a request header
-request = Request(
-    url,
-    headers={"x-apisports-key": api_key}
-)
-
-try:
-    with urlopen(request, timeout=20) as response:
-        data = json.load(response)
-
-    # Check the API response
-    if data.get("errors"):
-        print("API returned an error. Check your account or API key.")
-    else:
-        account = data.get("response", {}).get("account", {})
-        subscription = data.get("response", {}).get("subscription", {})
-        requests = data.get("response", {}).get("requests", {})
-
-        print("\n MATCHLENS API-FOOTBALL TEST ")
+def main():
+    api_key = read_api_key()
+    if not api_key:
+        return 1
+    request = Request(
+        "https://v3.football.api-sports.io/status",
+        headers={"x-apisports-key": api_key},
+    )
+    try:
+        # One request; never forward credentials through an HTTP redirect.
+        with build_opener(NoRedirects()).open(request, timeout=20) as response:
+            data = json.load(response)
+        if not isinstance(data, dict) or not isinstance(data.get("errors"), (dict, list)):
+            print("API-Football returned an unexpected response format.")
+            return 1
+        if data["errors"]:
+            print("API returned an error. Check your key, account access and quota.")
+            return 1
+        status = data.get("response")
+        if not isinstance(status, dict):
+            print("API-Football returned an unexpected status response.")
+            return 1
+        subscription = status.get("subscription")
+        quota = status.get("requests")
+        if not isinstance(subscription, dict) or not isinstance(quota, dict):
+            print("API-Football returned incomplete subscription or quota information.")
+            return 1
+        print("\nMATCHLENS API-FOOTBALL TEST")
         print("Connection: Successful")
-        print("Account:", account.get("firstname", "Available"))
-        print("Plan:", subscription.get("plan", "Unknown"))
-        print("Daily Request Limit:", requests.get("limit_day", "Unknown"))
-        print("Requests Used:", requests.get("current", "Unknown"))
+        # Show only the expected public plan names and numeric quota values.
+        plan = subscription.get("plan")
+        print("Plan:", plan if plan in ("Free", "Pro", "Ultra", "Mega") else "Available")
+        for label, field in (("Daily Request Limit", "limit_day"), ("Requests Used", "current")):
+            value = quota.get(field)
+            print(f"{label}:", value if type(value) is int and value >= 0 else "Unknown")
+        return 0
+    except HTTPError as error:
+        print(f"HTTP error {error.code}. Check API access and quota.")
+    except (URLError, OSError, HTTPException):
+        print("Network error: Could not connect to API-Football.")
+    except (ValueError, UnicodeError):
+        print("Invalid configuration or unreadable JSON response.")
+    return 1
 
-except HTTPError as error:
-    print("HTTP Error:", error.code)
-    print("Check your API key and account access.")
 
-except URLError:
-    print("Network Error: Could not connect to API-Football.")
+if __name__ == "__main__":
+    raise SystemExit(main())

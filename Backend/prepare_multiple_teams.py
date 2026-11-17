@@ -3,6 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
+from validate_match_schema import reject_duplicate_fields
 
 # Reuse the existing standard-library client: cached EntityData requests,
 # descriptive User-Agent, timeouts, gentle pacing and bounded rate-limit retries.
@@ -24,7 +25,7 @@ def load_verified_teams():
     # Validate the whole input before making any requests.
     try:
         with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-            data = json.load(input_file)
+            data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     except FileNotFoundError:
         raise ValidationError("Input file not found: Backend/output/teams_verified.json.") from None
     except (ValueError, UnicodeError):

@@ -28,7 +28,7 @@ struct MatchLibraryView: View {
                         Text("Match Library")
                             .font(.system(size: 28, weight: .bold))
                             .accessibilityAddTraits(.isHeader)
-                        Text("Find your next replay")
+                        Text("Demo matches • Find your next replay")
                             .font(.system(size: 13))
                             .foregroundColor(LibraryStyle.secondary)
                             .padding(.top, 10)
@@ -69,9 +69,11 @@ struct MatchLibraryView: View {
                             VStack(spacing: 14) {
                                 ForEach(filteredMatches) { match in
                                     NavigationLink {
-                                        // Replay currently owns demo team names and events.
-                                        // It can accept this match's metadata once that interface is extended.
-                                        MatchReplayView(duration: Double(match.replayMinutes * 60))
+                                        MatchReplayView(
+                                            duration: Double(match.replayMinutes) * 60,
+                                            matchTitle: match.title,
+                                            showDemoEvents: match.id == "city-reds"
+                                        )
                                     } label: {
                                         matchCard(match)
                                     }

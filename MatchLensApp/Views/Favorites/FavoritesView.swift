@@ -71,7 +71,7 @@ struct FavoritesView: View {
                         HStack(spacing: 10) {
                             Image(systemName: "star")
                                 .accessibilityHidden(true)
-                            Text("Your collection stays in sync")
+                            Text("Saved in memory for this demo")
                         }
                         .font(.system(size: 14))
                         .foregroundColor(FavoritesStyle.secondary)

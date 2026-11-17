@@ -1,16 +1,18 @@
 """Prepare a local Messi record. Requests happen only when run directly."""
 
 import json
+import re
 import unicodedata
 from datetime import date
+from http.client import HTTPException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import Request, build_opener
 
 # These helpers are safe to import: their script has a __main__ guard.
-# Do not import wikidata_test: it sends requests immediately on import.
-from api_football_players import find_messi, read_api_key
+from api_football_players import NoRedirects, find_messi, read_api_key
+from prepare_multiple_players import ValidationError, birth_date
 
 
 WIKIDATA_ID = "Q615"
@@ -23,12 +25,15 @@ class PlayerDataError(ValueError):
 
 def download_json(url, headers):
     request = Request(url, headers=headers)
-    with urlopen(request, timeout=20) as response:
+    # Wikidata may redirect; requests carrying an API key must never do so.
+    has_api_key = any(header.casefold() == "x-apisports-key" for header in headers)
+    opener = build_opener(NoRedirects()) if has_api_key else build_opener()
+    with opener.open(request, timeout=20) as response:
         return json.load(response)
 
 
 def get_wikidata(entity_id):
-    # Adapted from wikidata_test.py without its top-level requests or printing.
+    # Reuse the Wikidata EntityData request pattern.
     data = download_json(
         f"https://www.wikidata.org/wiki/Special:EntityData/{entity_id}.json",
         {"User-Agent": "MatchLensUniversityProject/1.0 (educational project)"},
@@ -75,7 +80,7 @@ def comparable_text(value):
 
 
 def valid_date(value):
-    if not isinstance(value, str) or len(value) != 10:
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
         return None
     try:
         return date.fromisoformat(value).isoformat()
@@ -84,23 +89,11 @@ def valid_date(value):
 
 
 def wikidata_birth_date(entity):
-    dates = set()
-    for value in claim_values(entity, "P569"):
-        if not isinstance(value, dict):
-            continue
-        # Precision 11 means an exact day, rather than just a month or year.
-        # ISO dates here require Wikidata's Gregorian calendar.
-        if value.get("precision", 0) < 11:
-            continue
-        if not str(value.get("calendarmodel", "")).endswith("/Q1985727"):
-            continue
-        raw_date = value.get("time", "")
-        birth_date = valid_date(raw_date[1:11]) if raw_date.startswith("+") else None
-        if birth_date:
-            dates.add(birth_date)
-    if len(dates) != 1:
-        raise PlayerDataError("Wikidata birth date is missing or ambiguous; no merge.")
-    return dates.pop()
+    # Share the strict day/precision/calendar/uncertainty checks with the batch tool.
+    try:
+        return birth_date(entity)
+    except ValidationError:
+        raise PlayerDataError("Wikidata birth date is missing, uncertain or ambiguous; no merge.") from None
 
 
 def get_api_profiles(api_key):
@@ -110,14 +103,18 @@ def get_api_profiles(api_key):
         f"https://v3.football.api-sports.io/players/profiles?{query}",
         {"x-apisports-key": api_key},
     )
-    if not isinstance(data, dict) or "errors" not in data or data["errors"]:
+    if (not isinstance(data, dict) or not isinstance(data.get("errors"), (dict, list))
+            or data["errors"]):
         raise PlayerDataError("API-Football error; check key, plan access and quota.")
     profiles = data.get("response")
     results = data.get("results")
     if not isinstance(profiles, list) or type(results) is not int or results != len(profiles):
         raise PlayerDataError("Unexpected API-Football profile response.")
-    if data.get("paging", {}).get("total", 1) > 1:
-        raise PlayerDataError("Search has additional pages; identity cannot be confirmed.")
+    paging = data.get("paging")
+    if (not isinstance(paging, dict) or type(paging.get("current")) is not int
+            or type(paging.get("total")) is not int
+            or paging["current"] != 1 or paging["total"] != 1):
+        raise PlayerDataError("Search is incomplete or paginated; identity cannot be confirmed.")
     return profiles
 
 
@@ -227,7 +224,7 @@ def main():
     except HTTPError as error:
         print(f"HTTP error {error.code}: check service access and request quota.")
         return 1
-    except (URLError, OSError):
+    except (URLError, OSError, HTTPException):
         print("Error: Could not reach a service or save the local output file.")
         return 1
     except PlayerDataError as error:

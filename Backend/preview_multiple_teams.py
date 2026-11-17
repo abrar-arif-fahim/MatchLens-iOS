@@ -10,6 +10,7 @@ from firebase_admin import credentials, firestore
 from firebase_admin.exceptions import FirebaseError
 from google.api_core.exceptions import GoogleAPICallError, PermissionDenied, Unauthenticated
 from google.auth.exceptions import GoogleAuthError
+from validate_match_schema import reject_duplicate_fields
 
 
 INPUT_FILE = Path(__file__).resolve().parent / "output" / "teams_prepared.json"
@@ -37,7 +38,7 @@ def load_teams():
     # Validate the ENTIRE file before initializing Firebase or making requests.
     try:
         with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
-            data = json.load(input_file)
+            data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
     except FileNotFoundError:
         raise PreviewError("Input file not found: Backend/output/teams_prepared.json.") from None
     except (ValueError, UnicodeError):

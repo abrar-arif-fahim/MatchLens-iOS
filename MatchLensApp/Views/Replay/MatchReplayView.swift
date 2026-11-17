@@ -9,13 +9,19 @@ struct MatchReplayView: View {
     @State private var player: AVPlayer?
 
     private let duration: Double
-    private let events = ReplayEvent.samples
+    private let matchTitle: String
+    private let events: [ReplayEvent]
     private let clock = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
     // No sample video is bundled yet. Supply a local file URL and its duration later.
     // Remote URLs are deliberately ignored in this frontend implementation.
-    init(localVideoURL: URL? = nil, duration: Double = 720) {
-        self.duration = duration.isFinite && duration > 0 ? duration : 720
+    init(localVideoURL: URL? = nil, duration: Double = 720,
+         matchTitle: String = "City Blues 3–2 Reds", showDemoEvents: Bool = true) {
+        let safeDuration = ReplayTimeline.duration(duration)
+        self.duration = safeDuration
+        self.matchTitle = matchTitle
+        // Sample moments belong only to the City Blues demo, within its duration.
+        self.events = showDemoEvents ? ReplayEvent.samples.filter { $0.seconds <= safeDuration } : []
         let localPlayer: AVPlayer?
         if let url = localVideoURL, url.isFileURL {
             localPlayer = AVPlayer(url: url)
@@ -51,6 +57,10 @@ struct MatchReplayView: View {
                     }
 
                     playerArea.padding(.top, 16)
+                    Text("Demonstration match — fictional data")
+                        .font(.caption)
+                        .foregroundColor(ReplayStyle.secondary)
+                        .padding(.top, 8)
                     playbackTimeline.padding(.top, 22)
 
                     Text("Jump to a moment")
@@ -78,6 +88,13 @@ struct MatchReplayView: View {
                     .padding(.top, 4)
 
                     VStack(spacing: 8) {
+                        if filteredEvents.isEmpty {
+                            Text(events.isEmpty ? "No event timeline available for this match."
+                                 : "No events match this filter.")
+                                .font(.subheadline)
+                                .foregroundColor(ReplayStyle.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         ForEach(filteredEvents) { event in
                             Button { seek(to: event.seconds) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
@@ -123,7 +140,7 @@ struct MatchReplayView: View {
             // Read actual playback time only; never simulate playback without video.
             guard let player = player, player.timeControlStatus == .playing else { return }
             let seconds = player.currentTime().seconds
-            if seconds.isFinite { playbackTime = min(max(0, seconds), duration) }
+            if seconds.isFinite { playbackTime = ReplayTimeline.position(seconds, duration: duration) }
         }
     }
 
@@ -143,7 +160,7 @@ struct MatchReplayView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Play match replay")
 
-                Text("CITY BLUES  3 : 2  REDS")
+                Text(matchTitle)
                     .font(.system(size: 14, weight: .bold))
                     .padding(24)
                     .allowsHitTesting(false)
@@ -204,13 +221,12 @@ struct MatchReplayView: View {
     }
 
     private func seek(to seconds: Double) {
-        playbackTime = min(max(0, seconds), duration)
+        playbackTime = ReplayTimeline.position(seconds, duration: duration)
         player?.seek(to: CMTime(seconds: playbackTime, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
     private func timeLabel(_ seconds: Double) -> String {
-        let total = Int(max(0, seconds))
-        return String(format: "%02d:%02d", total / 60, total % 60)
+        ReplayTimeline.label(seconds)
     }
 }
 

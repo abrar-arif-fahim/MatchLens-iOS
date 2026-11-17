@@ -7,11 +7,10 @@ import time
 from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import Request, build_opener
 
-# All imported helpers have main guards. Do not import api_football_test.py:
-# that older test makes a live request immediately when it is imported.
-from api_football_players import read_api_key
+# All imported helpers have main guards; importing them makes no requests.
+from api_football_players import NoRedirects, read_api_key
 from prepare_multiple_teams import load_verified_teams
 from discover_team_ids import ValidationError, club_name, normalize_name, other_section
 
@@ -28,12 +27,6 @@ BAYERN_API_FOOTBALL_ID = 157
 
 class MappingError(ValueError):
     """A safe API error message that never includes headers or response bodies."""
-
-
-class NoRedirects(HTTPRedirectHandler):
-    # Prevent extra requests or forwarding the secret header to another host.
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
 
 
 def public_text(value):
