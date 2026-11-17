@@ -1,4 +1,4 @@
-﻿import SwiftUI
+import SwiftUI
 
 struct RegisterView: View {
     @Environment(\.dismiss) private var dismiss
@@ -147,7 +147,8 @@ struct RegisterView: View {
     private func registerAccount() {
         errorMessage = nil
 
-        guard fullName.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 else {
+        let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedName.count >= 2 else {
             errorMessage = "Please enter your full name."
             focusedField = .name
             return
@@ -161,7 +162,6 @@ struct RegisterView: View {
             return
         }
 
-        // Preserve the existing project's password requirements.
         guard password.count >= 8,
               password.rangeOfCharacter(from: .uppercaseLetters) != nil,
               password.rangeOfCharacter(from: .lowercaseLetters) != nil,
