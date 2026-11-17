@@ -65,3 +65,7 @@ fastlane/test_output
 .env
 .env.*
 !.env.example
+
+# Python generated files
+__pycache__/
+*.py[cod]

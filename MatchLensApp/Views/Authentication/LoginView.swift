@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 struct LoginView: View {
@@ -7,34 +6,25 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var errorMessage: String? = nil
-    @State private var showSuccessAlert = false
+    @State private var showDemoAlert = false
 
     private let secondaryText = Color(red: 166 / 255, green: 185 / 255, blue: 209 / 255)
     private let accent = Color(red: 41 / 255, green: 119 / 255, blue: 250 / 255)
 
-    // Login owns the navigation stack for this authentication flow.
     var body: some View {
         NavigationStack {
             ZStack {
-
-                // MatchLens dark navy background
                 Color(red: 11 / 255, green: 15 / 255, blue: 31 / 255)
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
-
-                        // Circular MatchLens logo
                         VStack(spacing: 8) {
                             Text("ML")
                                 .font(.system(size: 56, weight: .bold))
-                                .foregroundColor(
-                                    Color(red: 240 / 255, green: 243 / 255, blue: 251 / 255)
-                                )
+                                .foregroundColor(Color(red: 240 / 255, green: 243 / 255, blue: 251 / 255))
                                 .frame(width: 200, height: 200)
-                                .background(
-                                    Color(red: 0.13, green: 0.20, blue: 0.32)
-                                )
+                                .background(Color(red: 0.13, green: 0.20, blue: 0.32))
                                 .clipShape(Circle())
 
                             Text("MatchLens")
@@ -44,7 +34,6 @@ struct LoginView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.bottom, 30)
 
-                        // Welcome message
                         Text("Welcome back")
                             .font(.system(size: 30, weight: .bold))
                             .foregroundColor(Color(red: 240 / 255, green: 243 / 255, blue: 251 / 255))
@@ -53,7 +42,6 @@ struct LoginView: View {
                             .font(.system(size: 14))
                             .foregroundColor(secondaryText)
 
-                        // Email input field
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Email address")
                                 .font(.system(size: 14, weight: .medium))
@@ -67,22 +55,17 @@ struct LoginView: View {
                                 .autocorrectionDisabled()
                                 .foregroundColor(.white)
                                 .padding(16)
-                                .background(
-                                    Color(red: 26 / 255, green: 38 / 255, blue: 58 / 255)
-                                )
+                                .background(Color(red: 26 / 255, green: 38 / 255, blue: 58 / 255))
                                 .cornerRadius(17)
                         }
                         .padding(.top, 24)
 
-                        // Password input field
                         VStack(alignment: .leading, spacing: 8) {
-
                             Text("Password")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.white)
 
                             HStack(spacing: 12) {
-
                                 Group {
                                     if isPasswordVisible {
                                         TextField("Enter your password", text: $password)
@@ -91,7 +74,7 @@ struct LoginView: View {
                                     }
                                 }
                                 .font(.system(size: 14))
-                            .textContentType(.password)
+                                .textContentType(.password)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .foregroundColor(.white)
@@ -102,14 +85,10 @@ struct LoginView: View {
                                     Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                                         .foregroundColor(secondaryText)
                                 }
-                                .accessibilityLabel(
-                                    isPasswordVisible ? "Hide password" : "Show password"
-                                )
+                                .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
                             }
                             .padding(16)
-                            .background(
-                                Color(red: 26 / 255, green: 38 / 255, blue: 58 / 255)
-                            )
+                            .background(Color(red: 26 / 255, green: 38 / 255, blue: 58 / 255))
                             .cornerRadius(17)
                         }
                         .padding(.top, 12)
@@ -120,14 +99,12 @@ struct LoginView: View {
                                 .foregroundColor(.red)
                         }
 
-                        // Sign In button
                         Button {
                             validateLogin()
                         } label: {
                             HStack(spacing: 10) {
                                 Text("Sign In")
                                     .font(.system(size: 16, weight: .bold))
-
                                 Image(systemName: "arrow.right")
                             }
                             .foregroundColor(.white)
@@ -138,7 +115,6 @@ struct LoginView: View {
                         }
                         .padding(.top, 24)
 
-                        // Registration link
                         HStack(spacing: 5) {
                             Text("Don't have an account?")
                                 .foregroundColor(secondaryText)
@@ -164,20 +140,25 @@ struct LoginView: View {
             .tint(accent)
             .preferredColorScheme(.dark)
             .toolbar(.hidden, for: .navigationBar)
-            .alert("Demo sign-in complete", isPresented: $showSuccessAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Your details passed validation. You have not been signed in to an account.")
-            }
+        }
+        .alert("Demo Sign In", isPresented: $showDemoAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your inputs are valid. Firebase sign-in is not connected yet, so you have not been signed in.")
         }
     }
 
-    // Local validation only. A future authentication service can be called here.
+    // Validate locally until Firebase Authentication is connected.
     private func validateLogin() {
         errorMessage = nil
-        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
 
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Please enter your email address."
+            return
+        }
+
+        let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
         guard trimmedEmail.range(of: emailPattern, options: .regularExpression) != nil else {
             errorMessage = "Please enter a valid email address."
             return
@@ -188,7 +169,7 @@ struct LoginView: View {
             return
         }
 
-        showSuccessAlert = true
+        showDemoAlert = true
     }
 }
 
