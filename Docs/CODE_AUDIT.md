@@ -71,12 +71,12 @@ were needed for those checks.
 
 ## Remaining limitations
 
-- The repository contains no `.xcodeproj` or `.xcworkspace`, and this Windows
-  environment has no iOS SDK or Simulator. Swift syntax checks and arithmetic
-  tests do not establish a successful SwiftUI type-check, iOS build or UI run.
-  In the existing Mac Xcode project, include `ReplayTimeline.swift` in the same
-  iOS app target as `MatchReplayView.swift`. Keep `Tests/ReplayTimelineTests.swift`
-  outside that target because it has its own command-line test entry point.
+- At audit time, the repository contained no `.xcodeproj` or `.xcworkspace`.
+  The subsequent iOS setup fix adds `MatchLens.xcodeproj`, including all ten app
+  Swift files and excluding the separate command-line test executable. See
+  [iOS setup](IOS_SETUP.md). This Windows environment still has no iOS SDK or
+  Simulator: syntax checks and arithmetic tests do not establish a successful
+  SwiftUI type-check, iOS build or UI run.
 - Login/registration remain local demos. Home/Profile/Favorites include explicit
   placeholder destinations; no highlight video is bundled, and saved items do
   not persist. These are unfinished integration work, not completed app features.
