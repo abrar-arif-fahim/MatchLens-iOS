@@ -16,6 +16,7 @@
 		B10000000000000000000008 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* ProfileView.swift */; };
 		B10000000000000000000009 /* MatchReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* MatchReplayView.swift */; };
 		B1000000000000000000000A /* ReplayTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000A /* ReplayTimeline.swift */; };
+		B1000000000000000000000B /* AuthenticationValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* AuthenticationValidation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		F10000000000000000000009 /* MatchReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchReplayView.swift; sourceTree = "<group>"; };
 		F1000000000000000000000A /* ReplayTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayTimeline.swift; sourceTree = "<group>"; };
 		F1000000000000000000000B /* MatchLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MatchLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1000000000000000000000C /* AuthenticationValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationValidation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,7 +73,7 @@
 		};
 		A10000000000000000000004 /* Authentication */ = {
 			isa = PBXGroup;
-			children = (F10000000000000000000002 /* LoginView.swift */, F10000000000000000000003 /* RegisterView.swift */);
+			children = (F10000000000000000000002 /* LoginView.swift */, F10000000000000000000003 /* RegisterView.swift */, F1000000000000000000000C /* AuthenticationValidation.swift */);
 			path = Authentication;
 			sourceTree = "<group>";
 		};
@@ -171,6 +173,7 @@
 				B10000000000000000000008 /* ProfileView.swift in Sources */,
 				B10000000000000000000009 /* MatchReplayView.swift in Sources */,
 				B1000000000000000000000A /* ReplayTimeline.swift in Sources */,
+				B1000000000000000000000B /* AuthenticationValidation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

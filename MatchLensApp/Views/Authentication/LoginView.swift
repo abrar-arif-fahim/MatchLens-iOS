@@ -158,8 +158,7 @@ struct LoginView: View {
             return
         }
 
-        let emailPattern = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
-        guard trimmedEmail.range(of: emailPattern, options: .regularExpression) != nil else {
+        guard AuthenticationValidation.isValidEmail(trimmedEmail) else {
             errorMessage = "Please enter a valid email address."
             return
         }

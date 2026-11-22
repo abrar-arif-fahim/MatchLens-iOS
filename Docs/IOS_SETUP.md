@@ -31,9 +31,9 @@ app as a Mac app are disabled in this target.
 5. Press **Command-R**. The app entry point launches `LoginView`; its Sign up link
    opens `RegisterView`. Both forms still perform local validation only.
 
-The project includes all ten existing app Swift files, including
-`RegisterView.swift` and `ReplayTimeline.swift`. It excludes the standalone
-`Tests/ReplayTimelineTests.swift` executable and its separate `@main` declaration.
+The project includes all app Swift files, including `RegisterView.swift`,
+`AuthenticationValidation.swift` and `ReplayTimeline.swift`. It excludes the
+standalone executables under `Tests/`, which have separate `@main` declarations.
 Backend scripts, `.env` and Firebase Admin credentials are not app resources.
 
 ## Confirm the project configuration
@@ -79,6 +79,48 @@ ignored by Git.
 
 Project structure and source references can be checked on Windows, but a full
 iOS build and simulator test require the Mac's Xcode tools and iOS SDK.
+
+## Swift review and local checks — 22 November 2026
+
+All app and standalone-test Swift files were reviewed. The registration screen's
+updated layout is preserved. Its missing password-visibility/loading state was
+restored, input focus and keyboard submission were reconnected, and its demo
+delay now uses a view-bound task. Returning to Login clears the loading state;
+cancelled work cannot display the completion alert. This follows Apple's
+[view-task lifecycle guidance](https://developer.apple.com/videos/play/wwdc2023/10248/).
+Registration still creates no account.
+
+Both forms use `AuthenticationValidation.swift` for the same local email-format
+check. This rejects empty domain labels, leading/trailing local dots, repeated
+local dots and domain labels with invalid hyphen placement. It does not verify
+mailbox ownership or replace future service-side validation.
+
+Executed on Windows: all **11 app Swift files** passed syntax parsing; the
+standalone authentication executable passed **23 email cases**; the replay
+executable passed **23 timing assertions**. The project property list parsed
+successfully. These checks do not type-check SwiftUI against the iOS SDK or test
+keyboard/navigation behavior on a running simulator.
+
+To repeat the standalone checks on your Mac, from the repository root:
+
+```sh
+swiftc -parse-as-library MatchLensApp/Views/Authentication/AuthenticationValidation.swift \
+  Tests/AuthenticationValidationTests.swift -o /tmp/matchlens-auth-tests && /tmp/matchlens-auth-tests
+swiftc -parse-as-library MatchLensApp/Views/Replay/ReplayTimeline.swift \
+  Tests/ReplayTimelineTests.swift -o /tmp/matchlens-replay-tests && /tmp/matchlens-replay-tests
+```
+
+In the iPhone simulator, check empty/invalid login input; all registration
+validation errors; Next/Done keyboard actions; both password visibility buttons;
+and returning to Login while the registration spinner is visible. Returning and
+reopening must not show an old success alert. Also check library search/filters,
+the selected replay title, timeline controls and removal of saved demo items.
+
+The app still starts at Login with local demo validation. It does not navigate
+into Home after signing in. Several Home/Profile/Saved destinations remain
+explicit placeholders, preferences/favorites are temporary, and no replay video
+is bundled. Other screens can be examined through their individual Xcode
+previews until that navigation/integration work is implemented.
 
 Apple references:
 [Create an Xcode project](https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app),
