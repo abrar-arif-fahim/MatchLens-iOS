@@ -46,6 +46,12 @@ def load_teams():
     except OSError:
         raise PreviewError("Could not read the prepared input. Check file permissions.") from None
 
+    return validate_team_records(data)
+
+
+def validate_team_records(data):
+    """Reuse the six-field contract for caller-supplied local data, without I/O."""
+
     records = data.get("teams") if isinstance(data, dict) else None
     if not isinstance(records, list):
         raise PreviewError("The JSON must contain a teams array.")

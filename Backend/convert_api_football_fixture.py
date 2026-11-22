@@ -4,6 +4,8 @@ import re
 from datetime import datetime, timedelta, timezone
 
 from validate_match_schema import ValidationError, require_text, validate_match
+from competition_mapping import resolve_competition
+from validate_competition_schema import validate_catalog
 
 
 # Same coarse statuses as the existing preview. Uncertain/unsupported codes are
@@ -90,21 +92,32 @@ def convert_kickoff(fixture, status):
     return kickoff.isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def convert_fixture(record, verified_team_mapping, *, is_demo=None):
+def convert_fixture(record, verified_team_mapping, *, is_demo=None, competition_catalog=None):
     """Return one 21-field match or raise ReviewRequired; never mutate the input.
 
     verified_team_mapping is {numeric_api_id: 'wikidata_Q...'}, supplied only
     after identity verification. is_demo must be explicitly True or False.
     Fictional records get demo IDs/source and null external source IDs, in line
     with the existing schema. Real-source mode preserves external IDs as strings.
+    An optional reviewed competition catalog enables strict competition mapping.
+    Without it the legacy null competitionId behavior is preserved. Demo data
+    never acquires a real competition association from provider IDs.
     """
     if not isinstance(record, dict):
         raise ReviewRequired("One provider fixture object is required, not an API response envelope or array.")
     if type(is_demo) is not bool:
         raise ReviewRequired("Explicitly choose is_demo=True for fictional data or is_demo=False for real-source data.")
+    if "isDemo" in record and type(record["isDemo"]) is not bool:
+        raise ReviewRequired("An input demonstration marker must be a boolean; uncertain provenance requires review.")
     if record.get("isDemo") is True and not is_demo:
         raise ReviewRequired("Input marked as fictional cannot be converted as real-source data.")
     validate_team_mapping(verified_team_mapping)
+    competition_id = None
+    if competition_catalog is not None:
+        try:
+            validate_catalog(competition_catalog)
+        except ValidationError as error:
+            raise ReviewRequired(f"Competition catalog: {error}") from None
 
     fixture = object_field(record, "fixture", "fixture")
     league = object_field(record, "league", "league")
@@ -112,6 +125,11 @@ def convert_fixture(record, verified_team_mapping, *, is_demo=None):
     status_data = object_field(fixture, "status", "fixture.status")
     fixture_id = positive_id(fixture.get("id"), "fixture.id")
     league_id = positive_id(league.get("id"), "league.id")
+    if competition_catalog is not None and not is_demo:
+        try:
+            competition_id = resolve_competition(competition_catalog, league_id)["competitionId"]
+        except ValidationError as error:
+            raise ReviewRequired(f"Competition mapping: {error}") from None
     team_ids = []
     for side in ("home", "away"):
         team = object_field(teams, side, f"teams.{side}")
@@ -146,7 +164,7 @@ def convert_fixture(record, verified_team_mapping, *, is_demo=None):
     match = {
         "matchId": f"{'demo' if is_demo else 'match'}_api_football_fixture_{fixture_id}",
         "homeTeamId": team_ids[0], "awayTeamId": team_ids[1],
-        "competitionId": None,  # No internal competition mapping has been verified.
+        "competitionId": competition_id,
         "sourceCompetitionId": None if is_demo else str(league_id),
         "competition": league["name"], "season": str(season),
         "kickoffUtc": convert_kickoff(fixture, status),

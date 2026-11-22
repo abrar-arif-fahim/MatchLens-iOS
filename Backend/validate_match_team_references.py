@@ -5,7 +5,7 @@ from google.api_core.exceptions import GoogleAPICallError, PermissionDenied, Una
 from google.auth.exceptions import GoogleAuthError
 
 # These existing modules have main guards: importing helpers makes no requests.
-from validate_match_schema import ValidationError, load_match, validate_match
+from validate_match_schema import ValidationError, load_match, validate_match, validate_team_reference_data
 from preview_multiple_teams import PreviewError, display_value, get_firestore_client
 
 
@@ -24,13 +24,7 @@ def read_team_reference(db, document_id):
         raise ValidationError("The returned team document ID does not match the requested ID.")
 
     team = snapshot.to_dict()
-    if not isinstance(team, dict):
-        raise ValidationError(f"teams/{document_id} contains unexpected document data.")
-    if team.get("teamId") != document_id:
-        raise ValidationError(f"teams/{document_id}: teamId is missing or inconsistent.")
-    expected_wikidata_id = document_id.removeprefix("wikidata_")
-    if team.get("wikidataId") != expected_wikidata_id:
-        raise ValidationError(f"teams/{document_id}: wikidataId is missing or inconsistent.")
+    validate_team_reference_data(document_id, team)
 
     # Names are optional for this reference check. Reuse safe, escaped display
     # rather than printing arbitrary Firestore values or nested objects.

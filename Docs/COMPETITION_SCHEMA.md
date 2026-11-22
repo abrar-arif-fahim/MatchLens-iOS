@@ -94,10 +94,10 @@ Only after that review should the mapping be marked verified. The validator chec
 the metadata's structure, not the truth of an evidence statement. Passing validation
 never verifies licensing or authorizes storing/redistributing provider data.
 
-The observed provider IDs **140, 143, 667 and 556 remain unmapped in this step**.
-No real provider IDs, mapping claims or captured responses are added to the local
-example. In particular, 556's identity remains unconfirmed. The validator does not
-activate mappings or modify the converter, even if synthetic test mappings pass.
+At the original Step 28F.5.9, provider IDs **140, 143, 667 and 556 remained unmapped**
+and 556's identity was unconfirmed. The fictional example remains unchanged.
+The later backend batch adds a separate reviewed reference catalog described below;
+the schema validator itself still does not discover or approve identities.
 
 ## Connection to matches
 
@@ -113,7 +113,8 @@ local fictional identity. This only checks local structure, not Firestore existe
 Its existing season string does not automatically link to the new example season.
 A future explicit `competitionSeasonId` field/season mapping would require a
 reviewed match-schema update. No such field, migration or automatic association is
-introduced here. Real fixture conversion continues to leave `competitionId` null.
+introduced here. Legacy conversion leaves `competitionId` null unless its caller
+explicitly supplies the reviewed competition catalog.
 
 ## Local validation
 
@@ -135,5 +136,43 @@ frontend work. The actual repository includes the completed match schema,
 converter and previews, and the user's current backend-first instructions take
 precedence. Existing working code and project context are preserved.
 
-Stop after Step 28F.5.9. Database creation, real competition verification, mapping
-activation, season resolution and provider reuse review remain future work.
+## Reviewed local mappings — backend batch
+
+`Backend/input/competition_mappings.json` stores manually maintained reference
+metadata based on the user's explicit confirmation of these identities:
+
+| Provider reference | Internal MatchLens ID |
+| --- | --- |
+| API-Football 140 | `competition_la_liga` |
+| API-Football 143 | `competition_copa_del_rey` |
+| API-Football 667 | `competition_friendlies_clubs` |
+| API-Football 556 | `competition_spain_super_cup` |
+
+These internal IDs are application assignments, pinned in the catalog. They are
+not Wikidata identifiers, provider IDs or season IDs, and must not regenerate
+when names change. `source: manual` identifies the manually curated records;
+`verificationEvidence` identifies the user's supplied ID/name/country/type review.
+`verifiedAt` records acceptance of those local associations on 22 November 2026,
+not an invented date for an earlier API lookup. No further identity attributes
+or provider rights are asserted.
+
+Competition types are MatchLens categories. Friendlies use `friendly`; the
+provider's confirmed `World` label is represented as region, with country null.
+The catalog contains no raw responses, fixture results, logos or season data.
+`seasons` remains empty because provider year tokens alone do not establish
+calendar boundaries or an internal edition mapping. Provider storage and reuse
+rights remain unapproved; reference metadata does not grant those rights.
+
+`competition_mapping.py` validates the whole catalog before lookup, resolves
+canonical numeric/string provider IDs, and rejects unknown, pending, duplicate
+or conflicting mappings. It also validates match-to-competition links and returns
+independent copies of competition/season metadata. Passing structural validation
+still does not independently prove the evidence's truth.
+
+```powershell
+python -B Backend/competition_mapping.py
+```
+
+The converter and integrated read-only service use this registry as described in
+[match conversion](MATCH_CONVERSION.md). No competition or mapping document has
+been created in Firestore by this batch.

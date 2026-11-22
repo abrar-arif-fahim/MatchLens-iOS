@@ -1,0 +1,75 @@
+{
+  "competitions": [
+    {
+      "competitionId": "competition_la_liga",
+      "name": "La Liga",
+      "competitionType": "domesticLeague",
+      "country": "Spain",
+      "region": null,
+      "isDemo": false,
+      "source": "manual"
+    },
+    {
+      "competitionId": "competition_copa_del_rey",
+      "name": "Copa del Rey",
+      "competitionType": "nationalCup",
+      "country": "Spain",
+      "region": null,
+      "isDemo": false,
+      "source": "manual"
+    },
+    {
+      "competitionId": "competition_friendlies_clubs",
+      "name": "Friendlies Clubs",
+      "competitionType": "friendly",
+      "country": null,
+      "region": "World",
+      "isDemo": false,
+      "source": "manual"
+    },
+    {
+      "competitionId": "competition_spain_super_cup",
+      "name": "Super Cup",
+      "competitionType": "nationalCup",
+      "country": "Spain",
+      "region": null,
+      "isDemo": false,
+      "source": "manual"
+    }
+  ],
+  "seasons": [],
+  "providerMappings": [
+    {
+      "provider": "API-Football",
+      "providerCompetitionId": "140",
+      "competitionId": "competition_la_liga",
+      "status": "verified",
+      "verificationEvidence": "User confirmed 140/La Liga/Spain/League. Timestamp records local mapping acceptance, not API retrieval or provider reuse permission.",
+      "verifiedAt": "2026-11-22T13:03:46Z"
+    },
+    {
+      "provider": "API-Football",
+      "providerCompetitionId": "143",
+      "competitionId": "competition_copa_del_rey",
+      "status": "verified",
+      "verificationEvidence": "User confirmed 143/Copa del Rey/Spain/Cup. Timestamp records local mapping acceptance, not API retrieval or provider reuse permission.",
+      "verifiedAt": "2026-11-22T13:03:46Z"
+    },
+    {
+      "provider": "API-Football",
+      "providerCompetitionId": "667",
+      "competitionId": "competition_friendlies_clubs",
+      "status": "verified",
+      "verificationEvidence": "User confirmed 667/Friendlies Clubs/World/Cup. Timestamp records local mapping acceptance, not API retrieval or provider reuse permission.",
+      "verifiedAt": "2026-11-22T13:03:46Z"
+    },
+    {
+      "provider": "API-Football",
+      "providerCompetitionId": "556",
+      "competitionId": "competition_spain_super_cup",
+      "status": "verified",
+      "verificationEvidence": "User confirmed 556/Super Cup/Spain/Cup. Timestamp records local mapping acceptance, not API retrieval or provider reuse permission.",
+      "verifiedAt": "2026-11-22T13:03:46Z"
+    }
+  ]
+}

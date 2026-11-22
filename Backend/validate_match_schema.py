@@ -55,6 +55,18 @@ def require_text(value, field):
         raise ValidationError(f"{field} must be a nonempty, trimmed public string.")
 
 
+def validate_team_reference_data(document_id, team):
+    """Shared local/Firestore identifier check; a name is not identity evidence."""
+    if not isinstance(document_id, str) or not re.fullmatch(r"wikidata_Q[1-9][0-9]*", document_id):
+        raise ValidationError("Team document ID must follow the wikidata_Q-number format.")
+    if not isinstance(team, dict):
+        raise ValidationError(f"teams/{document_id} contains unexpected document data.")
+    if team.get("teamId") != document_id:
+        raise ValidationError(f"teams/{document_id}: teamId is missing or inconsistent.")
+    if team.get("wikidataId") != document_id.removeprefix("wikidata_"):
+        raise ValidationError(f"teams/{document_id}: wikidataId is missing or inconsistent.")
+
+
 def validate_kickoff(value, status):
     # A postponed/cancelled fixture may have no known kickoff. Never guess one.
     if value is None and status in {"postponed", "cancelled"}:

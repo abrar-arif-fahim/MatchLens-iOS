@@ -2,6 +2,9 @@
 
 import argparse
 from collections import Counter
+from pathlib import Path
+
+from competition_mapping import load_verified_catalog, resolve_competition
 
 from convert_api_football_fixture import (
     ReviewRequired, convert_fixture, convert_kickoff, validate_team_mapping,
@@ -24,7 +27,7 @@ def fixture_id(record):
     return value if type(value) is int and value > 0 else None
 
 
-def validate_conversion(record, match, mapping):
+def validate_conversion(record, match, mapping, competition_catalog=None):
     # Recheck the schema independently, then check the conversion contract.
     validate_match(match)
     provider_id = record["fixture"]["id"]
@@ -37,8 +40,10 @@ def validate_conversion(record, match, mapping):
             raise ValidationError("Converted team references disagree with the verified mapping.")
     if match["kickoffUtc"] != convert_kickoff(record["fixture"], match["status"]):
         raise ValidationError("Converted kickoff does not preserve the provider's UTC instant.")
+    competition_id = (resolve_competition(competition_catalog, record["league"]["id"])["competitionId"]
+                      if competition_catalog is not None else None)
     if (match["sourceCompetitionId"] != str(record["league"]["id"])
-            or match["competitionId"] is not None):
+            or match["competitionId"] != competition_id):
         raise ValidationError("Provider/internal competition identifiers were not kept separate.")
     if match["isDemo"] is not False or match["source"] != "API-Football":
         raise ValidationError("Converted source metadata is inconsistent with real-source mode.")
@@ -64,10 +69,13 @@ def display_match(match):
     print("  Extra-time period: " + score_pair(match, "extraTimeHomeScore", "extraTimeAwayScore"))
     print("  Shootout: " + score_pair(match, "penaltyHomeScore", "penaltyAwayScore"))
     print(f"  Provider competition ID: {match['sourceCompetitionId']} | Season: {match['season']}")
-    print("  Internal competition ID: null (mapping not verified)")
+    if match["competitionId"] is None:
+        print("  Internal competition ID: null (mapping not verified)")
+    else:
+        print(f"  Internal competition ID: {match['competitionId']}")
 
 
-def preview_records(records, mapping):
+def preview_records(records, mapping, competition_catalog=None):
     """Convert all records independently; retain only summary counts afterward."""
     counts = {"PASSED": 0, "REVIEW REQUIRED": 0, "FAILED": 0}
     occurrences = Counter(fixture_id(record) for record in records if fixture_id(record) is not None)
@@ -79,8 +87,8 @@ def preview_records(records, mapping):
                 raise ValidationError("The returned fixture record is not an object.")
             if provider_id is not None and occurrences[provider_id] > 1:
                 raise ReviewRequired("Duplicate fixture ID in this response; records cannot be treated as separate matches.")
-            match = convert_fixture(record, mapping, is_demo=False)
-            validate_conversion(record, match, mapping)
+            match = convert_fixture(record, mapping, is_demo=False, competition_catalog=competition_catalog)
+            validate_conversion(record, match, mapping, competition_catalog)
         except ReviewRequired as error:
             counts["REVIEW REQUIRED"] += 1
             print(f"\n{label} | {error}")
@@ -99,7 +107,9 @@ def preview_records(records, mapping):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
-    parser.parse_args(argv)  # No endpoint overrides, retries or write flags.
+    parser.add_argument("--competition-catalog", type=Path,
+                        help="Use a locally reviewed catalog for strict internal competition mapping.")
+    args = parser.parse_args(argv)  # No endpoint overrides, retries or write flags.
     requests_used = 0
     total = None
     counts = {"PASSED": 0, "REVIEW REQUIRED": 0, "FAILED": 0}
@@ -108,6 +118,7 @@ def main(argv=None):
         # Reuse the existing local references and already verified 529/541 IDs.
         mapping = {api_id: team["teamId"] for api_id, team in load_team_mapping().items()}
         validate_team_mapping(mapping)
+        catalog = load_verified_catalog(args.competition_catalog) if args.competition_catalog else None
         api_key = read_api_key()
         if not api_key:
             print("ERROR: API-Football credentials are unavailable in the existing .env configuration.")
@@ -116,7 +127,10 @@ def main(argv=None):
         print("GET /fixtures/headtohead?" + head_to_head_query(SEASON))
         for api_id, team_id in mapping.items():
             print(f"Verified mapping: API-Football {api_id} -> teams/{team_id}")
-        print("Internal competition mappings are unavailable; competitionId stays null.")
+        if catalog is None:
+            print("No competition catalog selected; competitionId stays null.")
+        else:
+            print("Strict local competition mapping enabled. Unknown/pending IDs require review.")
         requests_used = 1
         # This existing helper makes one GET, with redirects blocked and no retry.
         data, notices = fetch_head_to_head(api_key, season=SEASON)
@@ -125,7 +139,7 @@ def main(argv=None):
         records, response_issues = read_fixture_records(data)
         total = len(records)
         print(f"Fixtures returned: {total}. Processing all returned records in memory.")
-        counts = preview_records(records, mapping)
+        counts = preview_records(records, mapping, catalog)
         if not records:
             print("No fixtures returned; no conversion success is claimed and no fallback was requested.")
         for issue in response_issues:
