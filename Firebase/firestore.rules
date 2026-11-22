@@ -1,0 +1,147 @@
+// DRAFT: not emulator-verified or deployed. Review before production use.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function owns(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function boundedList() {
+      return request.query.limit != null && request.query.limit > 0 && request.query.limit <= 51;
+    }
+    function wikidataId(value) {
+      return value is string && value.matches('^wikidata_Q[1-9][0-9]*$');
+    }
+    function matchId(value) {
+      return value is string && value.matches('^(demo|match)_[a-z0-9]+(_[a-z0-9]+)*$');
+    }
+    function highlightId(value) {
+      return value is string
+        && value.matches('^(demo_)?highlight_[a-z0-9]+(_[a-z0-9]+)*__[a-z0-9]+(_[a-z0-9]+)*$');
+    }
+    function metadataOnlyHighlight(data) {
+      // Actual media access stays closed until a separately reviewed release.
+      return data.rightsStatus == 'unconfirmed' && data.mediaReference == null;
+    }
+    function publicTarget(kind, id) {
+      return (kind == 'team' && wikidataId(id)
+                && exists(/databases/$(database)/documents/teams/$(id)))
+        || (kind == 'player' && wikidataId(id)
+                && exists(/databases/$(database)/documents/players/$(id)))
+        || (kind == 'match' && matchId(id)
+                && exists(/databases/$(database)/documents/matches/$(id)))
+        || (kind == 'highlight' && highlightId(id)
+                && exists(/databases/$(database)/documents/highlights/$(id))
+                && metadataOnlyHighlight(get(/databases/$(database)/documents/highlights/$(id)).data));
+    }
+    function profileValid(data, uid) {
+      return data.keys().hasAll(['uid', 'displayName', 'schemaVersion', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'schemaVersion', 'createdAt', 'updatedAt'])
+        && data.uid == uid
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && data.displayName.matches('^\\S(.*\\S)?$')
+        && !data.displayName.matches('.*[\\n\\r\\t].*')
+        && data.createdAt is timestamp && data.updatedAt is timestamp
+        && data.createdAt <= data.updatedAt;
+    }
+    function settingsValid(data) {
+      return data.keys().hasAll(['schemaVersion', 'favoriteTeamId', 'scoreNotifications',
+                                'highlightNotifications', 'appearance', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'favoriteTeamId', 'scoreNotifications',
+                               'highlightNotifications', 'appearance', 'updatedAt'])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.scoreNotifications is bool && data.highlightNotifications is bool
+        && data.appearance in ['system', 'dark', 'light']
+        && data.updatedAt is timestamp
+        && (data.favoriteTeamId == null || (wikidataId(data.favoriteTeamId)
+                && exists(/databases/$(database)/documents/teams/$(data.favoriteTeamId))));
+    }
+    function favoriteValid(data, id) {
+      return data.keys().hasAll(['targetType', 'targetId', 'schemaVersion', 'createdAt'])
+        && data.keys().hasOnly(['targetType', 'targetId', 'schemaVersion', 'createdAt'])
+        && data.targetType is string && data.targetId is string
+        && id == data.targetType + '_' + data.targetId
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.createdAt == request.time
+        && publicTarget(data.targetType, data.targetId);
+    }
+    function watchValid(data, id) {
+      return data.keys().hasAll(['matchId', 'schemaVersion', 'createdAt'])
+        && data.keys().hasOnly(['matchId', 'schemaVersion', 'createdAt'])
+        && data.matchId == id && matchId(id)
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.createdAt == request.time
+        && exists(/databases/$(database)/documents/matches/$(id));
+    }
+
+    // Public catalog writes are reserved for separately reviewed Admin ingestion.
+    // Rules cannot redact fields. Audit existing public documents before release.
+    match /players/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn() && boundedList();
+      allow write: if false;
+    }
+    match /teams/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn() && boundedList();
+      allow write: if false;
+    }
+    match /competitions/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn() && boundedList();
+      allow write: if false;
+    }
+    match /matches/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn() && boundedList();
+      allow write: if false;
+    }
+    match /matchEvents/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn() && boundedList();
+      allow write: if false;
+    }
+    match /highlights/{id} {
+      allow get: if signedIn() && metadataOnlyHighlight(resource.data);
+      allow list: if signedIn() && boundedList() && metadataOnlyHighlight(resource.data);
+      allow write: if false;
+    }
+
+    match /users/{uid} {
+      allow get: if owns(uid);
+      allow list, delete: if false;
+      allow create: if owns(uid) && profileValid(request.resource.data, uid)
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if owns(uid) && profileValid(request.resource.data, uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+
+      match /settings/{id} {
+        allow get: if owns(uid) && id == 'preferences';
+        allow list, delete: if false;
+        allow create, update: if owns(uid) && id == 'preferences'
+          && settingsValid(request.resource.data) && request.resource.data.updatedAt == request.time;
+      }
+      match /favorites/{id} {
+        allow get: if owns(uid);
+        allow list: if owns(uid) && boundedList();
+        allow create: if owns(uid) && favoriteValid(request.resource.data, id);
+        allow update: if false;
+        allow delete: if owns(uid); // Stale/deleted targets can still be removed.
+      }
+      match /watchlist/{id} {
+        allow get: if owns(uid);
+        allow list: if owns(uid) && boundedList();
+        allow create: if owns(uid) && watchValid(request.resource.data, id);
+        allow update: if false;
+        allow delete: if owns(uid);
+      }
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

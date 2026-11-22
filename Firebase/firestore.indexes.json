@@ -1,0 +1,49 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isDemo", "order": "ASCENDING"},
+        {"fieldPath": "kickoffUtc", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isDemo", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"},
+        {"fieldPath": "kickoffUtc", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isDemo", "order": "ASCENDING"},
+        {"fieldPath": "homeTeamId", "order": "ASCENDING"},
+        {"fieldPath": "kickoffUtc", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isDemo", "order": "ASCENDING"},
+        {"fieldPath": "awayTeamId", "order": "ASCENDING"},
+        {"fieldPath": "kickoffUtc", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "highlights",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "matchId", "order": "ASCENDING"},
+        {"fieldPath": "rightsStatus", "order": "ASCENDING"},
+        {"fieldPath": "mediaReference", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

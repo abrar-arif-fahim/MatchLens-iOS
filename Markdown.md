@@ -1049,3 +1049,30 @@ numbered Phase 29 are not defined in this repository.
 
 See [the event/highlight backend contract and local commands](Docs/MATCH_ANALYSIS.md)
 for the implemented scope, data relationships and remaining blockers.
+
+## Core backend integration contracts — 22 November 2026
+
+The next batch added app-facing read services, bounded search/feed pagination,
+joined match/event/highlight retrieval, Firebase session handoff, owner-scoped
+profile/settings/favorites/watchlist contracts and local mutation simulation.
+Existing preparation, conversion and validation code is reused.
+The default feed hides demonstration records; app highlight DTOs expose no media
+references and never claim playback is available.
+
+The architecture remains direct Firebase Swift SDK access; no hosted REST API was
+introduced. Python services are executable reference contracts and offline tests,
+not deployed authentication or an iOS runtime. Passwords/email identity remain
+Firebase Auth responsibilities; private paths are always scoped to its UID.
+
+Draft rules/indexes and optional loopback-only security tests are under Firebase/.
+They have NOT been deployed or verified in the emulator: local test tools are
+absent and were not downloaded. The Xcode project still has no Firebase package
+references, and no Swift files were changed.
+
+The full backend suite actually passed **298 tests, OK** (223 baseline). The
+fictional app workflow and emulator-test JavaScript syntax check also passed.
+Actual Firebase Auth, deployed rules, client mutations, live read-back and media
+playback remain unverified; full end-to-end readiness must not be claimed.
+
+See [the core backend/iOS integration contract](Docs/IOS_BACKEND_INTEGRATION.md)
+for field definitions, service interfaces, commands and the next integration batch.

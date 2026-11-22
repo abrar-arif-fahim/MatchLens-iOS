@@ -69,3 +69,9 @@ fastlane/test_output
 # Python generated files
 __pycache__/
 *.py[cod]
+
+# Optional local Firebase rule testing
+Firebase/node_modules/
+Firebase/.firebase/
+Firebase/*-debug.log
+Firebase/package-lock.json
