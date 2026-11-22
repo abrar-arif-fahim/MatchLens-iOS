@@ -45,11 +45,22 @@ def load_players():
     # Read and validate the ENTIRE file before initializing Firebase.
     with INPUT_FILE.open(encoding="utf-8-sig") as input_file:
         data = json.load(input_file, object_pairs_hook=reject_duplicate_fields)
+    return validate_player_records(data)
+
+
+def validate_player_records(data, *, max_records=5):
+    """Share public-player validation without file access or Firebase setup.
+
+    The importer retains its five-record limit. Read-only services can pass None
+    to validate larger already-prepared lists without expanding upload scope.
+    """
     records = data.get("players") if isinstance(data, dict) else None
     if not isinstance(records, list):
         raise PreviewError("The JSON must contain a players array.")
-    if len(records) > 5:
-        raise PreviewError("This initial preview accepts no more than five records.")
+    if max_records is not None and (type(max_records) is not int or max_records < 0):
+        raise PreviewError("The player validation limit must be a nonnegative integer or None.")
+    if max_records is not None and len(records) > max_records:
+        raise PreviewError(f"This preview accepts no more than {max_records} player records.")
 
     players = []
     seen_ids = set()

@@ -1025,3 +1025,27 @@ Deliver a functioning, beginner-maintainable native iOS application called **Mat
 The application should use a reliable Firebase backend, demonstrate appropriate native iOS development, and satisfy our university's project requirements.
 
 **Resume development from the actual latest repository state, not from assumptions.**
+
+## Backend progress update — 22 November 2026
+
+The historical completion lists above predate the latest match pipeline work.
+The documented roadmap still uses Phases A–H; Phases 30/31 and a complete
+numbered Phase 29 are not defined in this repository.
+
+- Previous Phase 28 remains **PARTIALLY COMPLETE**: reviewed competition mappings,
+  match conversion, validation and offline previews exist; approved real imports
+  and live read-back remain pending. Phase 29 remains **BLOCKED** by its missing
+  numbered requirements.
+- **Phase E — PARTIALLY COMPLETE:** reusable curated event preparation now links
+  validated matches, teams, competitions and player identities. Approved match/
+  event imports remain pending. The existing match schema is preserved.
+- **Phase F — PARTIALLY COMPLETE:** highlight metadata, event markers, derived
+  timelines and seek arguments are implemented offline. Actual licensed-media
+  playback and SwiftUI navigation remain pending.
+- The backend baseline was 171 passing tests. The full suite now passes **223
+  tests, OK**, including the integrated fictional analysis preview. No external
+  requests, media access, provider-data persistence, Firestore operations or
+  frontend changes were performed for this batch.
+
+See [the event/highlight backend contract and local commands](Docs/MATCH_ANALYSIS.md)
+for the implemented scope, data relationships and remaining blockers.
