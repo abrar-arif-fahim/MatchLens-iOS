@@ -1,3 +1,10 @@
+# Native source integration update
+
+The subsequent iOS batch implements the Swift client source described by this
+contract. See [current native setup and verification status](NATIVE_FIREBASE_SETUP.md).
+The offline baseline/review below remains historical: native compilation, actual
+Firebase operations and rule deployment have not been verified or performed.
+
 # MatchLens core backend and iOS integration
 
 ## Verified status

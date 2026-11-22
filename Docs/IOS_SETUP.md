@@ -5,7 +5,7 @@ Opening a folder or a `.swift` file does not supply an iOS application target.
 `MatchLens.xcodeproj` now defines that target and a shared `MatchLens` run scheme.
 
 The target uses the iPhone/iPad device and simulator platforms, with iOS 17.0 as
-the minimum deployment version. Use Xcode 15 or newer on a Mac, with an installed
+the minimum deployment version. The Firebase integration now requires Xcode 26.2 or later on a Mac, with an installed
 iOS Simulator runtime at or above iOS 17. Newer compatible runtimes also work;
 there is no need to install iOS 17 specifically. Mac Catalyst and running the iOS
 app as a Mac app are disabled in this target.
@@ -28,8 +28,8 @@ app as a Mac app are disabled in this target.
    Create a simulator in **Window > Devices and Simulators > Simulators** if
    necessary. A generic **Any iOS Device** destination is for building, not
    launching the simulator.
-5. Press **Command-R**. The app entry point launches `LoginView`; its Sign up link
-   opens `RegisterView`. Both forms still perform local validation only.
+5. Press **Command-R**. The app entry point restores the Firebase session or opens `LoginView`; its Sign up link
+   opens `RegisterView`. Both forms retain local validation and now call the Firebase SDK; see the setup requirements below.
 
 The project includes all app Swift files, including `RegisterView.swift`,
 `AuthenticationValidation.swift` and `ReplayTimeline.swift`. It excludes the
@@ -88,7 +88,7 @@ restored, input focus and keyboard submission were reconnected, and its demo
 delay now uses a view-bound task. Returning to Login clears the loading state;
 cancelled work cannot display the completion alert. This follows Apple's
 [view-task lifecycle guidance](https://developer.apple.com/videos/play/wwdc2023/10248/).
-Registration still creates no account.
+At that earlier review, registration created no account. The current source now calls Firebase Auth; live verification remains pending.
 
 Both forms use `AuthenticationValidation.swift` for the same local email-format
 check. This rejects empty domain labels, leading/trailing local dots, repeated
@@ -126,3 +126,12 @@ Apple references:
 [Create an Xcode project](https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app),
 [build settings](https://developer.apple.com/documentation/xcode/build-settings-reference),
 [run on a simulator or device](https://developer.apple.com/documentation/xcode/building-and-running-an-app).
+
+## Native Firebase source integration
+
+See [Native Firebase setup](NATIVE_FIREBASE_SETUP.md) before running the current app.
+The target now pins Firebase SDK 13.2.0, links its three required products and
+includes the native data/session services. Add the correct iOS client plist to
+the target on the Mac; the source does not include credentials or a dummy config.
+The earlier validation-only review above is historical. Native SDK compilation,
+live authentication, owned writes and simulator/device validation are still pending.

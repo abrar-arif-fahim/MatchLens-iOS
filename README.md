@@ -16,3 +16,8 @@ python -B -m unittest discover -s Backend -p "test_*.py" -q
 
 These commands use fictional match data and local snapshots; they do not log in,
 request provider data or write to Firestore.
+
+Native authentication and Firestore integration source is now included. Follow
+[the Mac/Firebase setup instructions](Docs/NATIVE_FIREBASE_SETUP.md) before running.
+The Firebase client plist and a successful Xcode build are still required;
+Windows syntax/contract checks do not establish simulator readiness.

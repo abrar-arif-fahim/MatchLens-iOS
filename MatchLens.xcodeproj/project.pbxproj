@@ -17,6 +17,18 @@
 		B10000000000000000000009 /* MatchReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* MatchReplayView.swift */; };
 		B1000000000000000000000A /* ReplayTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000A /* ReplayTimeline.swift */; };
 		B1000000000000000000000B /* AuthenticationValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* AuthenticationValidation.swift */; };
+		B20000000000000000000001 /* ClientModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001; };
+		B20000000000000000000002 /* FirebaseSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002; };
+		B20000000000000000000003 /* FirebaseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000003; };
+		B20000000000000000000004 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000004; };
+		B20000000000000000000005 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000005; };
+		B20000000000000000000006 /* MatchLensStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000006; };
+		B20000000000000000000007 /* CatalogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000007; };
+		B20000000000000000000008 /* MatchDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000008; };
+		B20000000000000000000009 /* competition_mappings.json in Resources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000009; };
+		B30000000000000000000001 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C30000000000000000000001; };
+		B30000000000000000000002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C30000000000000000000002; };
+		B30000000000000000000003 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C30000000000000000000003; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,13 +44,22 @@
 		F1000000000000000000000A /* ReplayTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayTimeline.swift; sourceTree = "<group>"; };
 		F1000000000000000000000B /* MatchLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MatchLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1000000000000000000000C /* AuthenticationValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationValidation.swift; sourceTree = "<group>"; };
+		F20000000000000000000001 /* ClientModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientModels.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* FirebaseSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseSetup.swift; sourceTree = "<group>"; };
+		F20000000000000000000003 /* FirebaseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseRepository.swift; sourceTree = "<group>"; };
+		F20000000000000000000004 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		F20000000000000000000005 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		F20000000000000000000006 /* MatchLensStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLensStyle.swift; sourceTree = "<group>"; };
+		F20000000000000000000007 /* CatalogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViews.swift; sourceTree = "<group>"; };
+		F20000000000000000000008 /* MatchDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailView.swift; sourceTree = "<group>"; };
+		F20000000000000000000009 /* competition_mappings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = competition_mappings.json; path = Backend/input/competition_mappings.json; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D10000000000000000000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (B30000000000000000000001, B30000000000000000000002, B30000000000000000000003);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -54,7 +75,7 @@
 		};
 		A10000000000000000000002 /* MatchLensApp */ = {
 			isa = PBXGroup;
-			children = (F10000000000000000000001 /* MatchLensApp.swift */, A10000000000000000000003 /* Views */);
+			children = (F10000000000000000000001 /* MatchLensApp.swift */, A10000000000000000000003 /* Views */, A20000000000000000000001 /* Data */, A20000000000000000000002 /* State */);
 			path = MatchLensApp;
 			sourceTree = "<group>";
 		};
@@ -67,6 +88,9 @@
 				A10000000000000000000007 /* Matches */,
 				A10000000000000000000008 /* Profile */,
 				A10000000000000000000009 /* Replay */,
+				F20000000000000000000005 /* AppRootView.swift */,
+				A20000000000000000000003 /* Catalog */,
+				A20000000000000000000004 /* Components */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -91,7 +115,7 @@
 		};
 		A10000000000000000000007 /* Matches */ = {
 			isa = PBXGroup;
-			children = (F10000000000000000000006 /* MatchAnalysisView.swift */, F10000000000000000000007 /* MatchLibraryView.swift */);
+			children = (F10000000000000000000006 /* MatchAnalysisView.swift */, F10000000000000000000007 /* MatchLibraryView.swift */, F20000000000000000000008 /* MatchDetailView.swift */);
 			path = Matches;
 			sourceTree = "<group>";
 		};
@@ -113,6 +137,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A20000000000000000000001 /* Data */ = {isa = PBXGroup; children = (F20000000000000000000001, F20000000000000000000002, F20000000000000000000003, F20000000000000000000009); path = Data; sourceTree = "<group>"; };
+		A20000000000000000000002 /* State */ = {isa = PBXGroup; children = (F20000000000000000000004); path = State; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Catalog */ = {isa = PBXGroup; children = (F20000000000000000000007); path = Catalog; sourceTree = "<group>"; };
+		A20000000000000000000004 /* Components */ = {isa = PBXGroup; children = (F20000000000000000000006); path = Components; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -122,6 +150,7 @@
 			buildPhases = (D10000000000000000000003 /* Sources */, D10000000000000000000004 /* Frameworks */, D10000000000000000000005 /* Resources */);
 			buildRules = ();
 			dependencies = ();
+			packageProductDependencies = (C30000000000000000000001, C30000000000000000000002, C30000000000000000000003);
 			name = MatchLens;
 			productName = MatchLens;
 			productReference = F1000000000000000000000B /* MatchLens.app */;
@@ -142,6 +171,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (en, Base);
 			mainGroup = A10000000000000000000001;
+			packageReferences = (C20000000000000000000001);
 			productRefGroup = A1000000000000000000000A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -153,7 +183,7 @@
 		D10000000000000000000005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (B20000000000000000000009 /* competition_mappings.json in Resources */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
@@ -174,10 +204,28 @@
 				B10000000000000000000009 /* MatchReplayView.swift in Sources */,
 				B1000000000000000000000A /* ReplayTimeline.swift in Sources */,
 				B1000000000000000000000B /* AuthenticationValidation.swift in Sources */,
+				B20000000000000000000001 /* ClientModels.swift in Sources */,
+				B20000000000000000000002 /* FirebaseSetup.swift in Sources */,
+				B20000000000000000000003 /* FirebaseRepository.swift in Sources */,
+				B20000000000000000000004 /* AppStore.swift in Sources */,
+				B20000000000000000000005 /* AppRootView.swift in Sources */,
+				B20000000000000000000006 /* MatchLensStyle.swift in Sources */,
+				B20000000000000000000007 /* CatalogViews.swift in Sources */,
+				B20000000000000000000008 /* MatchDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+        C20000000000000000000001 /* firebase-ios-sdk */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/firebase/firebase-ios-sdk"; requirement = {kind = exactVersion; version = 13.2.0; }; };
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C30000000000000000000001 /* FirebaseCore */ = {isa = XCSwiftPackageProductDependency; package = C20000000000000000000001; productName = FirebaseCore; };
+		C30000000000000000000002 /* FirebaseAuth */ = {isa = XCSwiftPackageProductDependency; package = C20000000000000000000001; productName = FirebaseAuth; };
+		C30000000000000000000003 /* FirebaseFirestore */ = {isa = XCSwiftPackageProductDependency; package = C20000000000000000000001; productName = FirebaseFirestore; };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E10000000000000000000001 /* Debug */ = {
@@ -215,6 +263,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
+                INFOPLIST_KEY_FirebaseAppDelegateProxyEnabled = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -241,6 +290,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+                INFOPLIST_KEY_FirebaseAppDelegateProxyEnabled = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

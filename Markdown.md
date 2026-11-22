@@ -1076,3 +1076,26 @@ playback remain unverified; full end-to-end readiness must not be claimed.
 
 See [the core backend/iOS integration contract](Docs/IOS_BACKEND_INTEGRATION.md)
 for field definitions, service interfaces, commands and the next integration batch.
+
+## Native Firebase integration source — 22 November 2026
+
+The native batch connects the existing eight screens to an AppStore, real Firebase
+Auth APIs and a Firestore repository. It adds session restoration, sign-out,
+profile recovery, owned transactions, paged catalog/feed/detail/saved reads, player/
+team detail destinations and preferences. No demo authentication success remains.
+Real feeds exclude demo matches; metadata-only highlights never enable playback.
+
+The Xcode project now includes all 19 app Swift files, the existing competition
+mapping resource and FirebaseCore/Auth/Firestore products from SDK 13.2.0.
+The iOS client plist is unavailable and must be added on the Mac. The existing
+access-rule draft matches the client schema but has not been deployed or
+emulator-verified. No live Firebase/API-Football operations were executed.
+
+Executed: 298 backend tests OK; 19 Swift files parsed; Foundation client model
+checks (79), Xcode property-list/target checks (56), existing authentication
+validation (23) and replay arithmetic checks (23) passed. Xcode/Firebase SDK
+type-checking, package resolution, simulator/device tests and live authentication/
+Firestore writes remain pending. This source batch must not be reported as a
+completed native build or end-to-end Firebase integration.
+
+See [Native Firebase setup and manual tests](Docs/NATIVE_FIREBASE_SETUP.md).

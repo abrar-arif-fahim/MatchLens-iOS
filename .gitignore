@@ -75,3 +75,7 @@ Firebase/node_modules/
 Firebase/.firebase/
 Firebase/*-debug.log
 Firebase/package-lock.json
+
+# Local Firebase iOS configuration and private Admin credentials
+MatchLensApp/**/GoogleService-Info.plist
+**/*-firebase-adminsdk-*.json

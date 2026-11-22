@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct LoginView: View {
+    @EnvironmentObject private var app: AppStore
 
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var errorMessage: String? = nil
-    @State private var showDemoAlert = false
 
     private let secondaryText = Color(red: 166 / 255, green: 185 / 255, blue: 209 / 255)
     private let accent = Color(red: 41 / 255, green: 119 / 255, blue: 250 / 255)
@@ -98,11 +98,15 @@ struct LoginView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(.red)
                         }
+                        if let error = app.errorMessage {
+                            Text(error).font(.system(size: 14)).foregroundStyle(.red)
+                        }
 
                         Button {
                             validateLogin()
                         } label: {
                             HStack(spacing: 10) {
+                                if app.authBusy { ProgressView().tint(.white) }
                                 Text("Sign In")
                                     .font(.system(size: 16, weight: .bold))
                                 Image(systemName: "arrow.right")
@@ -113,6 +117,7 @@ struct LoginView: View {
                             .background(accent)
                             .cornerRadius(17)
                         }
+                        .disabled(app.authBusy)
                         .padding(.top, 24)
 
                         HStack(spacing: 5) {
@@ -126,6 +131,7 @@ struct LoginView: View {
                                     .fontWeight(.semibold)
                                     .foregroundColor(accent)
                             }
+                            .disabled(app.authBusy)
                         }
                         .font(.system(size: 14))
                         .frame(maxWidth: .infinity)
@@ -136,19 +142,16 @@ struct LoginView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .disabled(app.authBusy)
             }
             .tint(accent)
             .preferredColorScheme(.dark)
             .toolbar(.hidden, for: .navigationBar)
         }
-        .alert("Demo Sign In", isPresented: $showDemoAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Your inputs are valid. Firebase sign-in is not connected yet, so you have not been signed in.")
-        }
+        .onAppear { app.errorMessage = nil }
     }
 
-    // Validate locally until Firebase Authentication is connected.
+    // Firebase alone decides whether locally validated credentials are accepted.
     private func validateLogin() {
         errorMessage = nil
 
@@ -168,10 +171,14 @@ struct LoginView: View {
             return
         }
 
-        showDemoAlert = true
+        let submittedPassword = password
+        Task {
+            await app.signIn(email: trimmedEmail, password: submittedPassword)
+            password = ""
+        }
     }
 }
 
 #Preview {
-    LoginView()
+    LoginView().environmentObject(AppStore())
 }

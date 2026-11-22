@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RegisterView: View {
+    @EnvironmentObject private var app: AppStore
     @Environment(\.dismiss) private var dismiss
     @State private var fullName = ""
     @State private var email = ""
@@ -8,9 +9,8 @@ struct RegisterView: View {
     @State private var confirmPassword = ""
     @State private var isPasswordVisible = false
     @State private var isConfirmPasswordVisible = false
-    @State private var isLoading = false
+    private var isLoading: Bool { app.authBusy }
     @State private var errorMessage: String?
-    @State private var showSuccessAlert = false
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
@@ -219,6 +219,9 @@ struct RegisterView: View {
                             .foregroundColor(.red)
                             .accessibilityLabel("Registration error: \(errorMessage)")
                     }
+                    if let error = app.errorMessage {
+                        Text(error).font(.system(size: 14)).foregroundStyle(.red)
+                    }
 
                     // MARK: - Create Account Button
                     Button {
@@ -270,6 +273,7 @@ struct RegisterView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("Returns to the sign-in screen")
+                        .disabled(isLoading)
                     }
                     .padding(.top, 74)
                 }
@@ -285,34 +289,7 @@ struct RegisterView: View {
         .preferredColorScheme(.dark)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        // SwiftUI cancels this task when the registration screen disappears.
-        .task(id: isLoading) { @MainActor in
-            guard isLoading else { return }
-            do {
-                try await Task.sleep(nanoseconds: 800_000_000)
-            } catch {
-                return
-            }
-            guard isLoading, !Task.isCancelled else { return }
-            isLoading = false
-            showSuccessAlert = true
-        }
-        .onDisappear {
-            isLoading = false
-            showSuccessAlert = false
-        }
-        .alert(
-            "Demo Registration",
-            isPresented: $showSuccessAlert
-        ) {
-            Button("Back to Sign In") {
-                dismiss()
-            }
-        } message: {
-            Text(
-                "Your details passed validation. No account has been created or saved."
-            )
-        }
+        .onAppear { app.errorMessage = nil }
     }
 
     // MARK: - Registration Validation
@@ -320,7 +297,9 @@ struct RegisterView: View {
         guard !isLoading else { return }
         errorMessage = nil
 
-        guard fullName.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 else {
+        let submittedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard (2...80).contains(submittedName.count),
+              (try? DocumentFields(data: ["displayName": submittedName]).text("displayName")) != nil else {
             errorMessage = "Please enter your full name."
             focusedField = .name
             return
@@ -349,10 +328,12 @@ struct RegisterView: View {
             return
         }
 
-        // MARK: - Mock Registration
-        // Firebase will replace this section later.
         focusedField = nil
-        isLoading = true
+        let submittedPassword = password
+        Task {
+            await app.register(name: submittedName, email: trimmedEmail, password: submittedPassword)
+            password = ""; confirmPassword = ""
+        }
     }
 }
 
@@ -360,4 +341,5 @@ struct RegisterView: View {
     NavigationStack {
         RegisterView()
     }
+    .environmentObject(AppStore())
 }
