@@ -84,7 +84,9 @@ struct LoginView: View {
                                 } label: {
                                     Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                                         .foregroundColor(secondaryText)
+                                        .frame(width: 44, height: 44).contentShape(Rectangle())
                                 }
+                                .buttonStyle(.plain)
                                 .accessibilityLabel(isPasswordVisible ? "Hide password" : "Show password")
                             }
                             .padding(16)
@@ -95,21 +97,22 @@ struct LoginView: View {
 
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
-                                .font(.system(size: 14))
+                                .font(.subheadline)
                                 .foregroundColor(.red)
+                                .accessibilityLabel("Sign-in error: \(errorMessage)")
                         }
                         if let error = app.errorMessage {
-                            Text(error).font(.system(size: 14)).foregroundStyle(.red)
+                            Text(error).font(.subheadline).foregroundStyle(.red)
+                                .accessibilityLabel("Sign-in error: \(error)")
                         }
 
                         Button {
                             validateLogin()
                         } label: {
                             HStack(spacing: 10) {
-                                if app.authBusy { ProgressView().tint(.white) }
-                                Text("Sign In")
-                                    .font(.system(size: 16, weight: .bold))
-                                Image(systemName: "arrow.right")
+                                if app.authBusy { ProgressView().tint(.white).accessibilityHidden(true) }
+                                Text(app.authBusy ? "Signing in…" : "Sign In").font(.headline)
+                                if !app.authBusy { Image(systemName: "arrow.right").accessibilityHidden(true) }
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -120,7 +123,7 @@ struct LoginView: View {
                         .disabled(app.authBusy)
                         .padding(.top, 24)
 
-                        HStack(spacing: 5) {
+                        AdaptiveActionRow {
                             Text("Don't have an account?")
                                 .foregroundColor(secondaryText)
 
@@ -130,15 +133,17 @@ struct LoginView: View {
                                 Text("Sign up")
                                     .fontWeight(.semibold)
                                     .foregroundColor(accent)
+                                    .frame(minHeight: 44)
                             }
                             .disabled(app.authBusy)
                         }
-                        .font(.system(size: 14))
+                        .font(.subheadline)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 16)
                     }
                     .padding(.horizontal, 30)
                     .padding(.vertical, 24)
+                    .frame(maxWidth: 500)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .scrollDismissesKeyboard(.interactively)
@@ -153,7 +158,9 @@ struct LoginView: View {
 
     // Firebase alone decides whether locally validated credentials are accepted.
     private func validateLogin() {
+        guard !app.authBusy else { return }
         errorMessage = nil
+        app.errorMessage = nil
 
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedEmail.isEmpty else {

@@ -3,21 +3,26 @@ import SwiftUI
 struct MatchDetailView: View {
     @EnvironmentObject private var app: AppStore
     let matchID: String
+    @State private var card: MatchCard?
     @State private var detail: MatchDetail?
     @State private var error: String?
     @State private var loading = false
+    @State private var retryMode: LoadMode = .initial
     var body: some View {
         ZStack {
             MatchLensStyle.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    if loading { ProgressView("Loading match details…") }
-                    if let error { DataNotice(title: "Match data unavailable", message: error); Button("Retry") { Task { await load() } } }
-                    if let detail {
-                        let card = detail.card
+                    if loading && card == nil { LoadingCard(title: "Loading match details…") }
+                    if let error {
+                        DataNotice(title: card == nil ? "Match data unavailable" : "Some match information couldn’t be updated", message: error) {
+                            Task { await load(mode: retryMode) }
+                        }
+                    }
+                    if let card {
                         if card.match.isDemo { DataNotice(title: "FICTIONAL DEMONSTRATION", message: "This is not a real match result.") }
-                        Text(card.title).font(.title.bold())
-                        Text(card.match.finalScore.text).font(.system(size: 36, weight: .bold)).monospacedDigit()
+                        Text(card.title).font(.title.bold()).accessibilityAddTraits(.isHeader)
+                        Text(card.match.finalScore.text).font(.largeTitle.bold()).monospacedDigit()
                         Text(card.match.status.capitalized + " • " + card.competition.name + " • " + card.match.season)
                             .foregroundStyle(MatchLensStyle.secondary)
                         Text(ClientPresentation.utc(card.match.kickoff))
@@ -25,14 +30,19 @@ struct MatchDetailView: View {
                             DataNotice(title: ["regularTime": "Regular-time result", "extraTime": "After extra time", "penalties": "Penalty shootout"][finish] ?? "Finished",
                                 message: "Regular time: \(card.match.regularTime.text)\nExtra-time period: \(card.match.extraTime.text)\nShootout: \(card.match.penalties.text)")
                         }
-                        HStack {
+                        AdaptiveActionRow {
                             NavigationLink(card.home.name) { TeamProfileView(teamID: card.home.id) }
                             NavigationLink(card.away.name) { TeamProfileView(teamID: card.away.id) }
                         }
                         SaveControls(kind: .match, id: card.id)
+                    }
+                    if loading && card != nil && detail == nil {
+                        LoadingCard(title: "Loading events and highlights…")
+                    }
+                    if let detail {
                         NavigationLink("Match analysis and events") { MatchAnalysisView(detail: detail) }
                             .buttonStyle(.borderedProminent)
-                        Text("Highlights").font(.title2.bold())
+                        Text("Highlights").font(.title2.bold()).accessibilityAddTraits(.isHeader)
                         if detail.highlights.isEmpty { DataNotice(title: "No highlights published", message: "No authorized playback is available.") }
                         ForEach(detail.highlights) { highlight in
                             NavigationLink { MatchReplayView(detail: detail, highlight: highlight) } label: {
@@ -40,10 +50,12 @@ struct MatchDetailView: View {
                             }.buttonStyle(.plain)
                             SaveControls(kind: .highlight, id: highlight.id)
                         }
-                        HStack {
+                        AdaptiveActionRow {
                             if detail.eventsCursor != nil { Button("Load more events") { Task { await load(mode: .events) } } }
                             if detail.highlightsCursor != nil { Button("More highlight metadata") { Task { await load(mode: .highlights) } } }
                         }.disabled(loading)
+                    }
+                    if let card {
                         Text("Source: \(card.match.source)\nStatistics and lineups have not been collected.")
                             .font(.caption).foregroundStyle(MatchLensStyle.secondary)
                     }
@@ -57,12 +69,21 @@ struct MatchDetailView: View {
     private func load(mode: LoadMode = .initial) async {
         guard !loading, let repo = app.repository else { return }
         let key = app.sessionKey, old = detail
-        loading = true; error = nil
+        loading = true; error = nil; retryMode = mode
         defer { if app.isCurrent(key) { loading = false } }
         do {
-            let page = try await repo.detail(matchID, eventCursor: mode == .events ? old?.eventsCursor : nil,
+            let fixture: MatchCard
+            if mode != .initial, let old {
+                fixture = old.card
+            } else {
+                fixture = try await repo.match(matchID)
+                guard app.isCurrent(key), !Task.isCancelled else { return }
+                if old == nil { card = fixture }
+            }
+            let page = try await repo.detail(fixture, eventCursor: mode == .events ? old?.eventsCursor : nil,
                                              highlightCursor: mode == .highlights ? old?.highlightsCursor : nil)
             guard app.isCurrent(key), !Task.isCancelled else { return }
+            card = fixture
             if mode == .initial || old == nil { detail = page }
             else if let old {
                 let events = old.events.filter { row in !page.events.contains { $0.id == row.id } } + page.events
@@ -73,6 +94,8 @@ struct MatchDetailView: View {
                     eventsCursor: mode == .highlights ? old.eventsCursor : page.eventsCursor,
                     highlightsCursor: mode == .events ? old.highlightsCursor : page.highlightsCursor)
             }
-        } catch { if app.isCurrent(key) { self.error = FirebaseSetup.safeMessage(error) } }
+        } catch {
+            if app.isCurrent(key), !Task.isCancelled { self.error = FirebaseSetup.safeMessage(error) }
+        }
     }
 }

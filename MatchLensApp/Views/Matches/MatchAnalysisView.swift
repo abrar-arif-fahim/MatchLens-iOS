@@ -9,27 +9,29 @@ struct MatchAnalysisView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Button { dismiss() } label: { Image(systemName: "chevron.left").frame(width: 32, height: 44) }
+                        Button { dismiss() } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44).contentShape(Rectangle()) }
                             .accessibilityLabel("Back")
-                        Text("Match Analysis").font(.system(size: 22, weight: .bold))
+                        Text("Match Analysis").font(.title2.bold()).accessibilityAddTraits(.isHeader)
                     }.buttonStyle(.plain)
                     if detail.card.match.isDemo {
                         DataNotice(title: "FICTIONAL DEMONSTRATION", message: "These scores and events are not a real football result.")
                     }
                     VStack(spacing: 16) {
-                        HStack {
+                        AdaptiveActionRow {
                             Text(detail.card.home.name).frame(maxWidth: .infinity, alignment: .leading)
                             Text(detail.card.away.name).frame(maxWidth: .infinity, alignment: .trailing)
-                        }.font(.system(size: 13, weight: .bold)).foregroundStyle(MatchLensStyle.secondary)
-                        Text(detail.card.match.finalScore.text).font(.system(size: 32, weight: .bold)).monospacedDigit()
+                        }.font(.subheadline.bold()).foregroundStyle(MatchLensStyle.secondary)
+                        Text(detail.card.match.finalScore.text).font(.largeTitle.bold()).monospacedDigit()
                         Text(detail.card.match.status.capitalized).foregroundStyle(MatchLensStyle.secondary)
                     }
                     .padding(20).frame(maxWidth: .infinity).background(MatchLensStyle.card)
                     .clipShape(RoundedRectangle(cornerRadius: 23))
-                    Text("Match Statistics").font(.title2.bold())
+                    Text("Match Statistics").font(.title2.bold()).accessibilityAddTraits(.isHeader)
                     DataNotice(title: "Statistics unavailable", message: "Verified statistics and lineups have not been collected.")
-                    Text("Key Events").font(.title2.bold())
-                    if detail.events.isEmpty { Text("No event metadata is available.").foregroundStyle(MatchLensStyle.secondary) }
+                    Text("Key Events").font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                    if detail.events.isEmpty {
+                        DataNotice(title: "No events to show", message: "Event metadata is unavailable for this match.")
+                    }
                     ForEach(detail.events) { event in
                         VStack(alignment: .leading, spacing: 8) {
                             Text(event.clock + " • " + (["goal": "Goal", "yellowCard": "Yellow card", "redCard": "Red card",

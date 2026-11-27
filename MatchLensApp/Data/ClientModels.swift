@@ -401,6 +401,9 @@ enum SavedKind: String, CaseIterable, Sendable {
     var collection: String {
         switch self { case .player: return "players"; case .team: return "teams"; case .match: return "matches"; case .highlight: return "highlights" }
     }
+    func savedDocumentID(_ targetID: String, watchlist: Bool) -> String {
+        watchlist ? targetID : rawValue + "_" + targetID
+    }
     func validate(_ id: String) throws {
         let valid: Bool
         switch self {
@@ -423,7 +426,7 @@ struct SavedRecord: Identifiable, Sendable {
             kind = value; targetId = try f.text("targetId")
         }
         try kind.validate(targetId)
-        guard id == (watchlist ? targetId : kind.rawValue + "_" + targetId) else { throw ClientError.invalidData("saved ID") }
+        guard id == kind.savedDocumentID(targetId, watchlist: watchlist) else { throw ClientError.invalidData("saved ID") }
         self.id = id; self.watchlist = watchlist; createdAt = try f.stamp("createdAt")
     }
 }

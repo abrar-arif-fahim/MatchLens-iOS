@@ -110,8 +110,8 @@ final class FirebaseRepository {
         try checkSession()
         return ClientPage(items: cards, nextCursor: next, issues: issues)
     }
-    func detail(_ id: String, eventCursor: String? = nil, highlightCursor: String? = nil) async throws -> MatchDetail {
-        let card = try await match(id)
+    func detail(_ card: MatchCard, eventCursor: String? = nil, highlightCursor: String? = nil) async throws -> MatchDetail {
+        let id = card.id
         let eventQuery = db.collection("matchEvents").whereField("matchId", isEqualTo: id).order(by: FieldPath.documentID())
         let highlightQuery = db.collection("highlights").whereField("matchId", isEqualTo: id)
             .whereField("rightsStatus", isEqualTo: "unconfirmed").whereField("mediaReference", isEqualTo: NSNull())
@@ -129,7 +129,11 @@ final class FirebaseRepository {
             events[eventID] = try EventRecord(id: eventID, data: await get("matchEvents", eventID), parent: card.match)
         }
         var players: [String: PlayerRecord] = [:]
-        for playerID in Set(events.values.compactMap(\.playerId)).sorted() { players[playerID] = try await player(playerID) }
+        for playerID in Set(events.values.compactMap(\.playerId)).sorted() {
+            do { players[playerID] = try await player(playerID) }
+            catch ClientError.missingRecord { continue }
+            catch ClientError.invalidData { continue }
+        }
         try checkSession()
         return MatchDetail(card: card, events: events.values.sorted {
             ($0.minute ?? Int.max, $0.addedTime ?? 0, $0.id) < ($1.minute ?? Int.max, $1.addedTime ?? 0, $1.id)
@@ -206,7 +210,7 @@ final class FirebaseRepository {
         try kind.validate(targetID); try checkSession()
         guard !watchlist || kind == .match else { throw ClientError.invalidData("watchlist target") }
         let uid = self.uid, auth = self.auth, db = self.db
-        let id = watchlist ? targetID : kind.rawValue + "_" + targetID
+        let id = kind.savedDocumentID(targetID, watchlist: watchlist)
         let ref = db.collection("users").document(uid).collection(watchlist ? "watchlist" : "favorites").document(id)
         _ = try await db.runTransaction { @Sendable transaction, errorPointer -> Any? in
             do {
@@ -244,12 +248,30 @@ final class FirebaseRepository {
             _ = try SavedRecord(id: id, data: Self.fields(data), watchlist: watchlist)
         }
     }
+    func savedStatus(kind: SavedKind, targetID: String, watchlist: Bool) async throws -> Bool {
+        try kind.validate(targetID)
+        guard !watchlist || kind == .match else { throw ClientError.invalidData("watchlist target") }
+        let id = kind.savedDocumentID(targetID, watchlist: watchlist)
+        let path = "users/\(uid)/" + (watchlist ? "watchlist" : "favorites")
+        do {
+            let fields = try await get(path, id)
+            _ = try SavedRecord(id: id, data: fields, watchlist: watchlist)
+            return true
+        } catch ClientError.missingRecord { return false }
+    }
     func savedItems(watchlist: Bool, cursor: String?) async throws -> ClientPage<SavedItem> {
         let path = "users/\(uid)/" + (watchlist ? "watchlist" : "favorites")
         let (rows, next) = try await page(db.collection(path).order(by: FieldPath.documentID()), path: path, cursor: cursor)
         var result: [SavedItem] = []
+        var issues = 0
         for row in rows {
-            let record = try SavedRecord(id: row.documentID, data: Self.fields(row.data()), watchlist: watchlist)
+            let record: SavedRecord
+            do {
+                record = try SavedRecord(id: row.documentID, data: Self.fields(row.data()), watchlist: watchlist)
+            } catch ClientError.invalidData {
+                issues += 1
+                continue
+            }
             do {
                 let title: String, subtitle: String, parentID: String?
                 switch record.kind {
@@ -274,6 +296,6 @@ final class FirebaseRepository {
             }
         }
         try checkSession()
-        return ClientPage(items: result, nextCursor: next, issues: 0)
+        return ClientPage(items: result, nextCursor: next, issues: issues)
     }
 }

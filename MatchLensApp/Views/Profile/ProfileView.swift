@@ -18,17 +18,18 @@ struct ProfileView: View {
             MatchLensStyle.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text("My Profile").font(.system(size: 28, weight: .bold))
-                    HStack(spacing: 16) {
+                    Text("My Profile").font(.title.bold()).accessibilityAddTraits(.isHeader)
+                    AdaptiveActionRow {
                         Text("ML").font(.system(size: 24, weight: .bold)).foregroundStyle(.white)
                             .frame(width: 70, height: 70).background(MatchLensStyle.blue).clipShape(Circle())
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(app.profile?.displayName ?? "Profile unavailable").font(.system(size: 19, weight: .bold))
-                            Text(app.email).font(.system(size: 13)).foregroundStyle(MatchLensStyle.secondary)
+                            Text(app.profile?.displayName ?? "Profile unavailable").font(.headline)
+                            Text(app.email).font(.footnote).foregroundStyle(MatchLensStyle.secondary)
                         }
                     }.padding(.vertical, 20)
                     preferenceCard("Display name", subtitle: app.profile?.displayName ?? "", sheet: .name)
-                    Text("Preferences").font(.title2.bold()).padding(.top, 18)
+                    Text("Preferences").font(.title2.bold()).accessibilityAddTraits(.isHeader).padding(.top, 18)
                     preferenceCard("Favorite team", subtitle: favoriteTeamName, sheet: .team)
                     preferenceCard("Notifications", subtitle: notificationSummary, sheet: .notifications)
                     preferenceCard("Appearance", subtitle: app.preferences.appearance.capitalized, sheet: .appearance)
@@ -61,8 +62,8 @@ struct ProfileView: View {
     private func preferenceCard(_ title: String, subtitle: String, sheet: ProfileSheet) -> some View {
         Button { app.mutationMessage = nil; activeSheet = sheet } label: {
             VStack(alignment: .leading, spacing: 7) {
-                Text(title).font(.system(size: 14, weight: .bold))
-                Text(subtitle).font(.system(size: 13)).foregroundStyle(MatchLensStyle.secondary)
+                Text(title).font(.subheadline.bold())
+                Text(subtitle).font(.footnote).foregroundStyle(MatchLensStyle.secondary)
             }
             .padding(.horizontal, 16).padding(.vertical, 13).frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
             .background(MatchLensStyle.card).clipShape(RoundedRectangle(cornerRadius: 18))
@@ -83,11 +84,13 @@ private struct ProfileNameEditor: View {
             Form {
                 TextField("Display name", text: $name).textContentType(.name)
                 if let error = app.mutationMessage { Text(error).foregroundStyle(.red) }
-                if app.saving { ProgressView() }
+                if app.saving { ProgressView("Updating profile…") }
                 Button("Save") {
                     Task { if await app.updateProfile(name: name.trimmingCharacters(in: .whitespacesAndNewlines)) { dismiss() } }
                 }.disabled(app.saving)
-                Button("Reload current name") { Task { await app.reloadPrivate(); name = app.profile?.displayName ?? name } }.disabled(app.saving)
+                Button("Reload current name") {
+                    Task { if await app.reloadPrivate(), let profile = app.profile { name = profile.displayName } }
+                }.disabled(app.saving)
             }
             .navigationTitle("Display name").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(app.saving) } }
@@ -114,7 +117,7 @@ private struct PreferencesEditor: View {
                         ForEach(app.teams) { team in Text(team.name).tag(Optional(team.id)) }
                     }
                     if app.teamsCursor != nil { Button("Load more teams") { Task { await app.loadTeams(more: true) } } }
-                    if app.teamsLoading { ProgressView() }
+                    if app.teamsLoading && app.teams.isEmpty { ProgressView("Loading teams…") }
                     if let error = app.teamsError { Text(error).foregroundStyle(.red); Button("Retry teams") { Task { await app.loadTeams(reset: true) } } }
                 case .notifications:
                     Toggle("Highlights", isOn: $draft.highlightNotifications)
@@ -127,9 +130,11 @@ private struct PreferencesEditor: View {
                 default: EmptyView()
                 }
                 if let error = app.mutationMessage { Text(error).foregroundStyle(.red) }
-                if app.saving { ProgressView() }
+                if app.saving { ProgressView("Updating preferences…") }
                 Button("Save settings") { Task { if await app.savePreferences(draft) { dismiss() } } }.disabled(app.saving)
-                Button("Reload current settings") { Task { await app.reloadPrivate(); draft = app.preferences } }.disabled(app.saving)
+                Button("Reload current settings") {
+                    Task { if await app.reloadPrivate() { draft = app.preferences } }
+                }.disabled(app.saving)
             }
             .navigationTitle(section.rawValue).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(app.saving) } }

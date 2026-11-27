@@ -9,11 +9,11 @@ struct AppRootView: View {
                 ZStack {
                     MatchLensStyle.background.ignoresSafeArea()
                     VStack(spacing: 20) {
-                        ProgressView("Restoring your session…").tint(MatchLensStyle.primary)
+                        LoadingCard(title: "Restoring your session…")
                         if app.uid != nil {
                             Button("Sign out") { app.signOut() }.disabled(app.authBusy || app.saving)
                         }
-                    }
+                    }.padding(22).frame(maxWidth: 480)
                 }
             case .signedOut: LoginView()
             case .ready: SignedInTabs().id(app.sessionKey)
@@ -32,6 +32,7 @@ struct AppRootView: View {
 }
 private struct SignedInTabs: View {
     @EnvironmentObject private var app: AppStore
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         TabView(selection: $app.tab) {
             HomeView().tag(AppTab.home)
@@ -41,11 +42,13 @@ private struct SignedInTabs: View {
         }
         .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            HStack(spacing: 4) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4),
+                                    count: dynamicTypeSize.isAccessibilitySize ? 2 : 4), spacing: 4) {
                 ForEach(AppTab.allCases, id: \.self) { tab in
                     Button { app.tab = tab } label: {
-                        Text(tab.rawValue).font(.system(size: 11, weight: app.tab == tab ? .bold : .regular))
+                        Text(tab.rawValue).font(.caption.weight(app.tab == tab ? .bold : .regular))
                             .foregroundStyle(app.tab == tab ? .white : Color(red: 166 / 255, green: 185 / 255, blue: 209 / 255))
+                            .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .background(app.tab == tab ? MatchLensStyle.blue.opacity(0.35) : .clear)
                             .clipShape(Capsule())
@@ -77,8 +80,8 @@ private struct ProfileRecoveryView: View {
                             .disabled(app.authBusy)
                     }
                 }
-                if let error = app.errorMessage { Text(error).foregroundStyle(.red) }
-                if app.authBusy { ProgressView() }
+                if let error = app.errorMessage { Text(error).foregroundStyle(.red).accessibilityLabel("Profile error: \(error)") }
+                if app.authBusy { ProgressView("Saving profile…") }
                 Button("Retry profile read") { app.retryProfile() }.disabled(app.authBusy)
                 Button("Sign out", role: .destructive) { app.signOut() }.disabled(app.authBusy)
             }

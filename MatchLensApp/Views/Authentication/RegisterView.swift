@@ -141,8 +141,10 @@ struct RegisterView: View {
                                     systemName: isPasswordVisible
                                     ? "eye.slash" : "eye"
                                 )
-                                .foregroundColor(.gray)
+                                .foregroundColor(secondaryText)
+                                .frame(width: 44, height: 44).contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel(
                                 isPasswordVisible
                                 ? "Hide password" : "Show password"
@@ -155,8 +157,8 @@ struct RegisterView: View {
                         .cornerRadius(12)
 
                         Text("Minimum 8 characters, including uppercase, lowercase and a number.")
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
+                            .font(.caption)
+                            .foregroundColor(secondaryText)
                     }
 
                     // MARK: - Confirm Password
@@ -197,11 +199,13 @@ struct RegisterView: View {
                                     systemName: isConfirmPasswordVisible
                                     ? "eye.slash" : "eye"
                                 )
-                                .foregroundColor(.gray)
+                                .foregroundColor(secondaryText)
+                                .frame(width: 44, height: 44).contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel(
                                 isConfirmPasswordVisible
-                                ? "Hide password" : "Show password"
+                                ? "Hide password confirmation" : "Show password confirmation"
                             )
                         }
                         .padding(16)
@@ -215,12 +219,13 @@ struct RegisterView: View {
                     if let errorMessage = errorMessage {
 
                         Text(errorMessage)
-                            .font(.system(size: 14))
+                            .font(.subheadline)
                             .foregroundColor(.red)
                             .accessibilityLabel("Registration error: \(errorMessage)")
                     }
                     if let error = app.errorMessage {
-                        Text(error).font(.system(size: 14)).foregroundStyle(.red)
+                        Text(error).font(.subheadline).foregroundStyle(.red)
+                            .accessibilityLabel("Registration error: \(error)")
                     }
 
                     // MARK: - Create Account Button
@@ -233,6 +238,8 @@ struct RegisterView: View {
                             if isLoading {
                                 ProgressView()
                                     .tint(.white)
+                                    .accessibilityHidden(true)
+                                Text("Creating account…").font(.headline)
                             } else {
                                 Text("Create Account")
                                     .font(
@@ -242,7 +249,7 @@ struct RegisterView: View {
                                         )
                                     )
 
-                                Image(systemName: "arrow.right")
+                                Image(systemName: "arrow.right").accessibilityHidden(true)
                             }
                         }
                         .foregroundColor(.white)
@@ -257,7 +264,7 @@ struct RegisterView: View {
                     .padding(.top, 12)
 
                     // MARK: - Sign In Link
-                    HStack(spacing: 5) {
+                    AdaptiveActionRow {
 
                         Text("Already have an account?")
                             .foregroundColor(.gray)
@@ -296,11 +303,12 @@ struct RegisterView: View {
     private func registerAccount() {
         guard !isLoading else { return }
         errorMessage = nil
+        app.errorMessage = nil
 
         let submittedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard (2...80).contains(submittedName.count),
               (try? DocumentFields(data: ["displayName": submittedName]).text("displayName")) != nil else {
-            errorMessage = "Please enter your full name."
+            errorMessage = "Enter a valid name between 2 and 80 characters."
             focusedField = .name
             return
         }

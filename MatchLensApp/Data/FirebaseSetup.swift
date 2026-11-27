@@ -59,16 +59,16 @@ enum FirebaseSetup {
             case .userDisabled: return "Sign-in is unavailable for this account."
             case .tooManyRequests: return "Too many attempts. Please try again later."
             case .networkError: return "Unable to connect. Check your connection."
-            case .operationNotAllowed: return "Enable Email/Password authentication in the Firebase project."
+            case .operationNotAllowed: return "Email sign-in is currently unavailable. Please contact support."
             default: return "Authentication could not finish. Please retry."
             }
         }
         if value.domain == FirestoreErrorDomain {
             switch FirestoreErrorCode.Code(rawValue: value.code) {
-            case .permissionDenied: return "Firestore access was denied. Review the client security rules before testing."
+            case .permissionDenied: return "Your account doesn’t have access to this information."
             case .unauthenticated: return "Your session expired. Please sign in again."
-            case .failedPrecondition: return "Firestore needs a required index or configuration review."
-            case .unavailable, .deadlineExceeded: return "Firestore could not connect. Check your connection and retry."
+            case .failedPrecondition: return "This information isn’t available right now. Please try again later."
+            case .unavailable, .deadlineExceeded: return "Couldn’t connect. Check your internet connection and try again."
             default: break
             }
         }

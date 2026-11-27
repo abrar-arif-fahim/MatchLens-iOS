@@ -10,31 +10,39 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("FOOTBALL / DISCOVER").font(.system(size: 12)).foregroundStyle(MatchLensStyle.secondary)
-                            Text("MatchLens").font(.system(size: 32, weight: .bold)).accessibilityAddTraits(.isHeader)
+                            Text("MatchLens").font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
                             Text("Every moment matters.").font(.system(size: 15)).foregroundStyle(MatchLensStyle.secondary)
                         }
-                        if app.matchesLoading { ProgressView("Loading matches…").tint(.white) }
-                        if let error = app.matchesError {
-                            DataNotice(title: "Matches unavailable", message: error)
-                            Button("Retry") { Task { await app.loadMatches(reset: true) } }
-                        } else if let first = app.matches.first {
-                            featuredMatch(first)
-                        } else if !app.matchesLoading {
-                            DataNotice(title: "No matches available", message: "Approved match data has not been published yet. You can explore players and teams.")
+                        if app.matches.isEmpty && app.matchesError == nil && (app.matchesLoading || !app.loadedMatches) {
+                            LoadingCard(title: "Loading matches…")
                         }
-                        HStack {
+                        if let error = app.matchesError {
+                            DataNotice(title: app.matches.isEmpty ? "Matches unavailable" : "Couldn’t update matches", message: error) {
+                                Task { await app.loadMatches(reset: true) }
+                            }
+                        }
+                        if let first = app.matches.first {
+                            featuredMatch(first)
+                        } else if app.loadedMatches && !app.matchesLoading && app.matchesError == nil {
+                            DataNotice(title: "No matches available", message: app.matchesCursor == nil
+                                ? "No approved matches are available to display. You can explore players and teams."
+                                : "No matches could be displayed from the loaded page. Load more to check the next page.")
+                        }
+                        AdaptiveActionRow {
                             NavigationLink { CatalogView() } label: { Label("Players & teams", systemImage: "magnifyingglass") }
                                 .buttonStyle(.borderedProminent)
                             Button("Match library") { app.tab = .matches }.buttonStyle(.bordered)
                         }
-                        Text("Latest matches").font(.system(size: 20, weight: .bold))
+                        Text("Latest matches").font(.title3.bold()).accessibilityAddTraits(.isHeader)
                         ForEach(app.matches) { card in
                             NavigationLink { MatchDetailView(matchID: card.id) } label: { MatchCardRow(card: card) }.buttonStyle(.plain)
                         }
                         if app.matchesCursor != nil {
-                            Button("Load more matches") { Task { await app.loadMatches(more: true) } }.disabled(app.matchesLoading)
+                            Button(app.matchesLoading ? "Loading matches…" : "Load more matches") {
+                                Task { await app.loadMatches(more: true) }
+                            }.disabled(app.matchesLoading)
                         }
-                        if app.reviewCount > 0 { Text("\(app.reviewCount) fetched records require a data review.").font(.caption).foregroundStyle(.orange) }
+                        if app.reviewCount > 0 { Text("\(app.reviewCount) fetched match records require a data review.").font(.caption).foregroundStyle(.orange) }
                         DataNotice(title: "Highlight videos", message: "No authorized video is available. Match details can show event metadata when provided.")
                     }
                     .foregroundStyle(MatchLensStyle.primary).frame(maxWidth: 440, alignment: .leading)
@@ -52,7 +60,7 @@ struct HomeView: View {
             MatchLensStyle.blue.frame(height: 8).clipShape(Capsule())
             VStack(alignment: .leading, spacing: 16) {
                 Text("FEATURED MATCH").font(.system(size: 11, weight: .bold)).foregroundStyle(MatchLensStyle.lime)
-                Text(card.title).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
+                Text(card.title).font(.title.bold()).foregroundStyle(.white)
                 Text(card.match.finalScore.text + " • " + card.match.status.capitalized).foregroundStyle(.white.opacity(0.8))
                 Text(ClientPresentation.utc(card.match.kickoff)).font(.caption).foregroundStyle(.white.opacity(0.8))
                 NavigationLink("MATCH DETAILS") { MatchDetailView(matchID: card.id) }
